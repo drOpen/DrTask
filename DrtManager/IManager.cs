@@ -1,5 +1,5 @@
 ﻿/*
-  IPlugin.cs -- Interface describes the base Plugin class 1.0.0, August 30, 2015
+  IManager.cs -- Interface describes the base manager for executing plugins 1.0.0, August 30, 2015
  
   Copyright (c) 2013-2015 Kudryashov Andrey aka Dr
  
@@ -24,31 +24,19 @@
       Kudryashov Andrey <kudryashov.andrey at gmail.com>
 
  */
-
-using DrOpen.DrCommon.DrData;
+using DrOpen.DrTask.DrtPlugin;
 using System;
 
-namespace DrOpen.DrTask.DrtPlugin
+namespace DrOpen.DrTask.DrtManager
 {
     /// <summary>
-    /// Interface describes the base Plugin class
+    /// Interface describes the base manager for executing plugins
     /// </summary>
-    public interface IPlugin
+    public interface IManager : IPlugin
     {
         /// <summary>
-        /// raise event before execute plugin
+        /// event to interact with the parent manager
         /// </summary>
-        event EventHandler BeforeExecute;
-        /// <summary>
-        /// raise event after execute plugin
-        /// </summary>
-        event EventHandler AfterExecute;
-        /// <summary>
-        /// Invokes execution of plugin with given config and additional data
-        /// </summary>
-        /// <param name="config"></param>
-        /// <param name="nodes"></param>
-        /// <returns>This method returns result as Data abstraction layer</returns>
-        DDNode Execute(DDNode config, params DDNode[] nodes);
+        event EventHandler CallParent;
     }
 }

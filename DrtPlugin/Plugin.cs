@@ -31,6 +31,9 @@ using System;
 
 namespace DrOpen.DrTask.DrtPlugin
 {
+    /// <summary>
+    /// abstract base Plugin class
+    /// </summary>
     public abstract class Plugin : IPlugin
     {
         /// <summary>

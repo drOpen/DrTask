@@ -1,5 +1,5 @@
 ﻿/*
-  IPlugin.cs -- Interface describes the base Plugin class 1.0.0, August 30, 2015
+  ICommand.cs -- Interface describes the commands of manager 1.0.0, August 30, 2015
  
   Copyright (c) 2013-2015 Kudryashov Andrey aka Dr
  
@@ -24,31 +24,21 @@
       Kudryashov Andrey <kudryashov.andrey at gmail.com>
 
  */
-
-using DrOpen.DrCommon.DrData;
 using System;
+using DrOpen.DrCommon.DrData;
 
-namespace DrOpen.DrTask.DrtPlugin
+namespace DrOpen.DrTask.DrtManager.Commands
 {
     /// <summary>
-    /// Interface describes the base Plugin class
+    ///  Interface describes the commands of manager
     /// </summary>
-    public interface IPlugin
+    public interface ICommand
     {
         /// <summary>
-        /// raise event before execute plugin
+        /// command of manager
         /// </summary>
-        event EventHandler BeforeExecute;
-        /// <summary>
-        /// raise event after execute plugin
-        /// </summary>
-        event EventHandler AfterExecute;
-        /// <summary>
-        /// Invokes execution of plugin with given config and additional data
-        /// </summary>
-        /// <param name="config"></param>
-        /// <param name="nodes"></param>
-        /// <returns>This method returns result as Data abstraction layer</returns>
-        DDNode Execute(DDNode config, params DDNode[] nodes);
+        /// <param name="config">configuration of command</param>
+        /// <returns>result</returns>
+        DDNode DoIt(DDNode config);
     }
 }

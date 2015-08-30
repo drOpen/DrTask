@@ -1,7 +1,10 @@
-﻿/*
-  IPlugin.cs -- Interface describes the base Plugin class 1.0.0, August 30, 2015
+﻿using DrOpen.DrCommon.DrData;
+/*
+  Manager.cs -- base manager for executing plugins 1.0.0, August 30, 2015
  
   Copyright (c) 2013-2015 Kudryashov Andrey aka Dr
+                          Kirillov Vasiliy 
+                          Mattis Igor 
  
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -22,33 +25,28 @@
       3. This notice may not be removed or altered from any source distribution.
 
       Kudryashov Andrey <kudryashov.andrey at gmail.com>
+      Kirillov Vasiliy  <vskirillov.spb at gmail.com>
+      Mattis Igor       <rulez1990 at gmail.com>
 
  */
-
-using DrOpen.DrCommon.DrData;
+using DrOpen.DrTask.DrtPlugin;
 using System;
 
-namespace DrOpen.DrTask.DrtPlugin
+namespace DrOpen.DrTask.DrtManager
 {
     /// <summary>
-    /// Interface describes the base Plugin class
+    /// base manager for executing plugins
     /// </summary>
-    public interface IPlugin
+    public class Manager : Plugin, IManager, IPlugin
     {
         /// <summary>
-        /// raise event before execute plugin
+        /// event for request parent manager
         /// </summary>
-        event EventHandler BeforeExecute;
-        /// <summary>
-        /// raise event after execute plugin
-        /// </summary>
-        event EventHandler AfterExecute;
-        /// <summary>
-        /// Invokes execution of plugin with given config and additional data
-        /// </summary>
-        /// <param name="config"></param>
-        /// <param name="nodes"></param>
-        /// <returns>This method returns result as Data abstraction layer</returns>
-        DDNode Execute(DDNode config, params DDNode[] nodes);
+        public event EventHandler CallParent;
+
+        public override DDNode Execute(DDNode config, params DDNode[] nodes)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

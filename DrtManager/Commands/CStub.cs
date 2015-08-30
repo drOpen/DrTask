@@ -1,5 +1,5 @@
 ﻿/*
-  IPlugin.cs -- Interface describes the base Plugin class 1.0.0, August 30, 2015
+  CStub.cs -- stub command for manager 1.0.0, August 30, 2015
  
   Copyright (c) 2013-2015 Kudryashov Andrey aka Dr
  
@@ -22,33 +22,24 @@
       3. This notice may not be removed or altered from any source distribution.
 
       Kudryashov Andrey <kudryashov.andrey at gmail.com>
-
- */
-
+  */
 using DrOpen.DrCommon.DrData;
-using System;
 
-namespace DrOpen.DrTask.DrtPlugin
+namespace DrOpen.DrTask.DrtManager.Commands
 {
     /// <summary>
-    /// Interface describes the base Plugin class
+    /// stub command for manager
     /// </summary>
-    public interface IPlugin
+    internal class CStub: ICommand
     {
         /// <summary>
-        /// raise event before execute plugin
+        /// return configuration as is
         /// </summary>
-        event EventHandler BeforeExecute;
-        /// <summary>
-        /// raise event after execute plugin
-        /// </summary>
-        event EventHandler AfterExecute;
-        /// <summary>
-        /// Invokes execution of plugin with given config and additional data
-        /// </summary>
-        /// <param name="config"></param>
-        /// <param name="nodes"></param>
-        /// <returns>This method returns result as Data abstraction layer</returns>
-        DDNode Execute(DDNode config, params DDNode[] nodes);
+        /// <param name="config">configuration</param>
+        /// <returns>return configuration as is</returns>
+        public DDNode DoIt(DDNode config)
+        {
+            return config;
+        }
     }
 }
