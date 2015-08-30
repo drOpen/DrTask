@@ -37,15 +37,15 @@ namespace DrOpen.DrTask.DrtPlugin
         /// </summary>
         event EventHandler BeforeExecute;
         /// <summary>
-        /// raise event before after plugin
+        /// raise event after execute plugin
         /// </summary>
         event EventHandler AfterExecute;
         /// <summary>
-        /// Invokes execution of plugin with given config and data
+        /// Invokes execution of plugin with given config and additional data
         /// </summary>
         /// <param name="config"></param>
         /// <param name="nodes"></param>
-        /// <returns>This method returns an error code</returns>
+        /// <returns>This method returns result as Data abstraction layer</returns>
         DDNode Execute(DDNode config, params DDNode[] nodes);
     }
 }
