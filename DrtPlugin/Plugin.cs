@@ -1,5 +1,5 @@
 ﻿/*
-  IPlugin.cs -- Interface describes the base Plugin class 1.0.0, August 30, 2015
+  Plugin.cs -- abstract base Plugin class 1.0.0, August 30, 2015
  
   Copyright (c) 2013-2015 Kudryashov Andrey aka Dr
  
@@ -26,26 +26,63 @@
  */
 
 using DrOpen.DrCommon.DrData;
+using DrOpen.DrCommon.DrLog.DrLogClient;
 using System;
 
 namespace DrOpen.DrTask.DrtPlugin
 {
-    public interface IPlugin
+    public abstract class Plugin : IPlugin
     {
+        /// <summary>
+        /// access to single tone Logger object
+        /// </summary>
+        protected Logger log = Logger.GetInstance;
         /// <summary>
         /// raise event before execute plugin
         /// </summary>
-        event EventHandler BeforeExecute;
+        public event EventHandler BeforeExecute;
         /// <summary>
         /// raise event after execute plugin
         /// </summary>
-        event EventHandler AfterExecute;
+        public event EventHandler AfterExecute;
         /// <summary>
         /// Invokes execution of plugin with given config and additional data
         /// </summary>
         /// <param name="config"></param>
         /// <param name="nodes"></param>
         /// <returns>This method returns result as Data abstraction layer</returns>
-        DDNode Execute(DDNode config, params DDNode[] nodes);
+        public abstract DDNode Execute(DDNode config, params DDNode[] nodes);
+        /// <summary>
+        /// facade for raise event before execute plugin
+        /// </summary>
+        /// <param name="eventArgs">arguments</param>
+        public virtual void DoBeforeExecute(DDEventArgs eventArgs)
+        {
+            try
+            {
+                if (BeforeExecute != null) BeforeExecute(this, eventArgs);
+            }
+            catch (Exception e)
+            {
+                log.WriteError(e, Res.Msg.CANNOT_RAISE_EVENT, "BeforeExecute");
+            }
+        }
+        /// <summary>
+        /// facade for raise event after execute plugin
+        /// </summary>
+        /// <param name="eventArgs">arguments</param>
+        public virtual void DoAfterExecute(DDEventArgs eventArgs)
+        {
+            try
+            {
+                if (AfterExecute != null)
+                    AfterExecute(this, eventArgs);
+            }
+            catch (Exception e)
+            {
+                log.WriteError(e, Res.Msg.CANNOT_RAISE_EVENT, "AfterExecute");
+            }
+        }
+
     }
 }
