@@ -35,7 +35,7 @@ namespace DrOpen.DrTask.DrtManager
     public interface IManager : IPlugin
     {
         /// <summary>
-        /// event to interact with the parent manager
+        /// Event to interact with the parent manager
         /// </summary>
         event EventHandler CallParent;
     }

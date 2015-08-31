@@ -32,20 +32,20 @@ using System;
 namespace DrOpen.DrTask.DrtPlugin
 {
     /// <summary>
-    /// abstract base Plugin class
+    /// Abstract base Plugin class
     /// </summary>
     public abstract class Plugin : IPlugin
     {
         /// <summary>
-        /// access to single tone Logger object
+        /// Access to single tone Logger object
         /// </summary>
         protected Logger log = Logger.GetInstance;
         /// <summary>
-        /// raise event before execute plugin
+        /// Raise event before execute plugin
         /// </summary>
         public event EventHandler BeforeExecute;
         /// <summary>
-        /// raise event after execute plugin
+        /// Raise event after execute plugin
         /// </summary>
         public event EventHandler AfterExecute;
         /// <summary>
@@ -56,7 +56,7 @@ namespace DrOpen.DrTask.DrtPlugin
         /// <returns>This method returns result as Data abstraction layer</returns>
         public abstract DDNode Execute(DDNode config, params DDNode[] nodes);
         /// <summary>
-        /// facade for raise event before execute plugin
+        /// Facade for raise event before execute plugin
         /// </summary>
         /// <param name="eventArgs">arguments</param>
         public virtual void DoBeforeExecute(DDEventArgs eventArgs)
@@ -71,7 +71,7 @@ namespace DrOpen.DrTask.DrtPlugin
             }
         }
         /// <summary>
-        /// facade for raise event after execute plugin
+        /// Facade for raise event after execute plugin
         /// </summary>
         /// <param name="eventArgs">arguments</param>
         public virtual void DoAfterExecute(DDEventArgs eventArgs)

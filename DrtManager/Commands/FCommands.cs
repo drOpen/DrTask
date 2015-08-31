@@ -35,7 +35,7 @@ using System.Collections.Generic;
 namespace DrOpen.DrTask.DrtManager.Commands
 {
     /// <summary>
-    /// factory of commands
+    /// Factory of commands
     /// </summary>
     public static class FCommands
     {
