@@ -91,21 +91,116 @@ namespace DrOpen.DrTask.DrtManager
         }
 
         /// <summary>
-        /// Invokes execution of manager with given config and additional data
+        /// Facade for executin of manager with given config and data
         /// </summary>
         /// <param name="config">config should contain a node with list of plugin for proper execution</param>
         /// <param name="nodes"></param>
         /// <returns></returns>
         public override DDNode Execute(DDNode config, params DDNode[] nodes)
         {
-            throw new NotImplementedException();
+            try
+            {
+                currentPlugin = 0;
+                return DoExecute(config, nodes);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return new DDNode();// BadResult();
+            }
         }
+
+        /// <summary>
+        /// Invokes execution of manager with given config and additional data
+        /// </summary>
+        /// <param name="config">config should contain a node with list of plugin for proper execution</param>
+        /// <param name="nodes"></param>
+        /// <returns></returns>
+        private DDNode DoExecute(DDNode config, params DDNode[] nodes)
+        {
+            DDNode pluginListNode = config.GetNode("PluginList");
+            IEnumerator<KeyValuePair<string, DDNode>> pluginNodeEnumerator = pluginListNode.GetEnumerator();
+
+            while (currentPlugin < pluginListNode.Count)
+            {
+                // if (IPlugin) object for [currentPlugin] isn't created yet - creates it
+                if (currentPlugin >= pluginList.Count)
+                {
+                    pluginNodeEnumerator.MoveNext();
+                    DDNode pluginNode = pluginNodeEnumerator.Current.Value;
+                    this.pluginList.Add(GetPluginObject(pluginNode));
+                }
+
+                var currentPluginInstance = pluginList[currentPlugin];
+                // TBD: DDNode pluginConfig for currentPlugin - using method: private DDNode GetPluginConfig(DDNode pluginListNode, int currentPlugin)
+                currentPlugin++;
+
+                var beforeExecuteEventArgs = new DDEventArgs();
+                ProcessBeforeExecute(currentPluginInstance, beforeExecuteEventArgs);
+                //if (beforeExecuteEventArgs.Cancel = true) continue; // another EventArgs class required
+
+                SubscribeToManager(currentPluginInstance);
+                var callParentEventArgs = new DDEventArgs();
+                currentPluginInstance.Execute(new DDNode()); // TBD: pluginConfig instead of [new DDNode()]
+                // TBD: DDNode result = currentPluginInstance.Execute(pluginConfig);
+
+                if (currentPlugin == pluginListNode.Count)
+                    this.DoCallParent(callParentEventArgs);
+
+                ProcessAfterExecute(currentPluginInstance, new DDEventArgs());
+            }
+            
+
+            return new DDNode("GoodResult");
+        }
+
+
+        /// <summary>
+        /// Method that subscribes for [plugin]'s BeforeExecute event and raises it.
+        /// May be used to determine if [plugin] execution is needed or not
+        /// </summary>
+        /// <param name="plugin">Currently beeing executed plugin</param>
+        /// <param name="beforeEventArgs">Event arguments</param>
+        private void ProcessBeforeExecute(IPlugin plugin, DDEventArgs beforeEventArgs)
+        {
+            plugin.BeforeExecute += this.BeforeExecuteHandler;
+            plugin.DoBeforeExecute(beforeEventArgs);
+            plugin.BeforeExecute -= this.BeforeExecuteHandler;
+        }
+
+        /// <summary>
+        /// Method that subscribes for [plugin]'s BeforeExecute event and raises it.
+        /// </summary>
+        /// <param name="plugin">Currently beeing executed plugin</param>
+        /// <param name="afterEventArgs">Event arguments</param>
+        private void ProcessAfterExecute(IPlugin plugin, DDEventArgs afterEventArgs)
+        {
+            plugin.AfterExecute += this.AfterExecuteHandler;
+            plugin.DoAfterExecute(afterEventArgs);
+            plugin.AfterExecute -= this.AfterExecuteHandler;
+
+            //this.CallUp -= this.EventHandling;
+        }
+
+        /// <summary>
+        /// Subscribe CallParentHandler method to CallParent event if it's Manager object boxed into IPlugin
+        /// </summary>
+        /// <param name="plugin">IPlugin object that may be Manager or not</param>
+        private void SubscribeToManager(IPlugin plugin)
+        {
+            if (plugin is Manager)
+            {
+                Manager manager = (Manager)plugin;
+                manager.CallParent += this.CallParentHandler;
+            }
+        }
+
 
         /// <summary>
         /// Facade for raise event of calling up for parent manager
         /// </summary>
-        /// <param name="eventArgs"></param>
-        public void DoCallParent(DrtEventArgs eventArgs)
+        /// <param name="eventArgs">Event arguments</param>
+        public void DoCallParent(DDEventArgs eventArgs)
         {
             try
             {
@@ -120,7 +215,86 @@ namespace DrOpen.DrTask.DrtManager
         }
 
 
+        /// <summary>
+        /// Method extracts plugin dll&class information from configurational DDNode
+        /// and initiates proccess of creating specified object by means of System.Reflection
+        /// </summary>
+        /// <param name="pluginNode">Node that contains plugin configuration (both common and plugin specific)</param>
+        /// <returns>Plugin object that meets [Configuration/Common] content</returns>
+        private IPlugin GetPluginObject(DDNode pluginNode)
+        {
+            DDNode pluginConfig = pluginNode.GetNode("Configuration");
+            DDNode pluginConfigCommon = pluginConfig.GetNode("Common");
+            string ddlPath = pluginConfigCommon.Attributes["DllPath"];
+            string className = pluginConfigCommon.Attributes["Class"];
 
+            return (IPlugin)this.GetObject(ddlPath, className);
+        }
+
+        #region EventHandling
+
+        /// <summary>
+        /// Method that handles BeforeExecute event
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="simpleArgs"></param>
+        public void BeforeExecuteHandler(Object sender, EventArgs simpleArgs)
+        {
+            if (simpleArgs.GetType() == typeof(DrtEventCancelArgs))
+            {
+                DrtEventCancelArgs extendedArgs = (DrtEventCancelArgs)simpleArgs;
+            }
+        }
+
+        /// <summary>
+        /// Method that handles AfterExecute event
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="simpleArgs"></param>
+        public void AfterExecuteHandler(Object sender, EventArgs simpleArgs)
+        {
+            if (simpleArgs.GetType() == typeof(DrtEventCancelArgs))
+            {
+                DrtEventCancelArgs extendedArgs = (DrtEventCancelArgs)simpleArgs;
+                extendedArgs.Cancel = true;
+            }
+        }
+
+        /// <summary>
+        /// Method that handles CallParent event
+        /// </summary>
+        /// <param name="managerInstance"></param>
+        /// <param name="simpleArgs"></param>
+        public void CallParentHandler(Object managerInstance, EventArgs simpleArgs)
+        {
+            //log.WriteDebug("Starting EventHandling...");
+            DrtEventArgs extendedArgs = null;
+            if (simpleArgs.GetType() == typeof(DrtEventArgs))
+            {
+                extendedArgs = (DrtEventArgs)simpleArgs;
+            }
+            try
+            {
+                string commandName = FCommands.Sample; //extendedArgs.EventData.Attributes["commandName"].ToString();
+                DDNode resultNode = new DDNode();
+
+                if (supportedCommands.Contains(commandName))
+                {
+                    resultNode = FCommands.GetCommand(commandName).DoIt(extendedArgs.EventData);
+                }
+
+                //if (commandName == FCommands.GoTo && resultNode.GetNode("GoTo").Attributes["Enabled"])
+                //    currentPlugin = resultNode.GetNode("GoTo").Attributes["PluginToGo"];
+
+                //log.WriteDebug("EventHandling started succesfull");
+            }
+            catch (Exception e)
+            {
+                //log.WriteError(e, "Cannot process EventHandling");
+            }
+        }
+
+        #endregion
 
         #region Reflection
 
@@ -248,4 +422,3 @@ namespace DrOpen.DrTask.DrtManager
         #endregion
     }
 }
-// test comment 1001
