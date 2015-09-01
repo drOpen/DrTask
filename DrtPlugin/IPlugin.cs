@@ -50,5 +50,7 @@ namespace DrOpen.DrTask.DrtPlugin
         /// <param name="nodes"></param>
         /// <returns>This method returns result as Data abstraction layer</returns>
         DDNode Execute(DDNode config, params DDNode[] nodes);
+        void DoBeforeExecute(DDEventArgs beforeEventArgs);
+        void DoAfterExecute(DDEventArgs afterEventArgs);
     }
 }
