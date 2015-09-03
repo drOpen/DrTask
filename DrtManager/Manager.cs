@@ -226,6 +226,21 @@ namespace DrOpen.DrTask.DrtManager
         {
             DDNode pluginConfig = pluginNode.GetNode("Configuration");
             DDNode pluginConfigCommon = pluginConfig.GetNode("Common");
+            // If [Configuration/Common] node doesn't contain both DllPath and Class name attributes:
+            // try to get them from [PathToConfig] node or from [Root/Plugins/<pluginNode.Name>]
+            if (!pluginConfigCommon.Contains("DllPath") || !pluginConfigCommon.Contains("Class"))
+            {
+                if (pluginConfigCommon.Contains("PathToConfig"))
+                {
+                    pluginConfigCommon = pluginNode.GetRoot().GetNode(pluginConfigCommon.Attributes["PathToConfig"]);
+                }
+                else
+                {
+                    pluginConfigCommon = pluginNode.GetRoot().GetNode("Plugins/" + pluginNode.Name);
+                }
+                // TBD: add fail resist here (if node is still not valid
+            }
+
             string ddlPath = pluginConfigCommon.Attributes["DllPath"];
             string className = pluginConfigCommon.Attributes["Class"];
 
