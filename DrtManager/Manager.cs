@@ -91,7 +91,7 @@ namespace DrOpen.DrTask.DrtManager
         }
 
         /// <summary>
-        /// Facade for executin of manager with given config and data
+        /// Facade for execution of manager with given config and data
         /// </summary>
         /// <param name="config">config should contain a node with list of plugin for proper execution</param>
         /// <param name="nodes"></param>
@@ -155,6 +155,7 @@ namespace DrOpen.DrTask.DrtManager
         }
 
 
+        #region [Execute] supporting methods
         /// <summary>
         /// Method that subscribes for [plugin]'s BeforeExecute event and raises it.
         /// May be used to determine if [plugin] execution is needed or not
@@ -230,7 +231,7 @@ namespace DrOpen.DrTask.DrtManager
 
             return (IPlugin)this.GetObject(ddlPath, className);
         }
-
+        #endregion
         #region EventHandling
 
         /// <summary>
@@ -240,9 +241,9 @@ namespace DrOpen.DrTask.DrtManager
         /// <param name="simpleArgs"></param>
         public void BeforeExecuteHandler(Object sender, EventArgs simpleArgs)
         {
-            if (simpleArgs.GetType() == typeof(DrtEventCancelArgs))
+            if (simpleArgs.GetType() == typeof(DDEventArgs))
             {
-                DrtEventCancelArgs extendedArgs = (DrtEventCancelArgs)simpleArgs;
+                DDEventArgs extendedArgs = (DDEventArgs)simpleArgs;
             }
         }
 
@@ -253,10 +254,9 @@ namespace DrOpen.DrTask.DrtManager
         /// <param name="simpleArgs"></param>
         public void AfterExecuteHandler(Object sender, EventArgs simpleArgs)
         {
-            if (simpleArgs.GetType() == typeof(DrtEventCancelArgs))
+            if (simpleArgs.GetType() == typeof(DDEventArgs))
             {
-                DrtEventCancelArgs extendedArgs = (DrtEventCancelArgs)simpleArgs;
-                extendedArgs.Cancel = true;
+                DDEventArgs extendedArgs = (DDEventArgs)simpleArgs;
             }
         }
 
@@ -268,10 +268,10 @@ namespace DrOpen.DrTask.DrtManager
         public void CallParentHandler(Object managerInstance, EventArgs simpleArgs)
         {
             //log.WriteDebug("Starting EventHandling...");
-            DrtEventArgs extendedArgs = null;
-            if (simpleArgs.GetType() == typeof(DrtEventArgs))
+            DDEventArgs extendedArgs = null;
+            if (simpleArgs.GetType() == typeof(DDEventArgs))
             {
-                extendedArgs = (DrtEventArgs)simpleArgs;
+                extendedArgs = (DDEventArgs)simpleArgs;
             }
             try
             {
@@ -295,7 +295,6 @@ namespace DrOpen.DrTask.DrtManager
         }
 
         #endregion
-
         #region Reflection
 
         /// <summary>
