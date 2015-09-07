@@ -43,11 +43,11 @@ namespace DrOpen.DrTask.DrtPlugin
         /// <summary>
         /// Raise event before execute plugin
         /// </summary>
-        public event EventHandler BeforeExecute;
+        public event DDEventHandler BeforeExecute;
         /// <summary>
         /// Raise event after execute plugin
         /// </summary>
-        public event EventHandler AfterExecute;
+        public event DDEventHandler AfterExecute;
         /// <summary>
         /// Invokes execution of plugin with given config and additional data
         /// </summary>

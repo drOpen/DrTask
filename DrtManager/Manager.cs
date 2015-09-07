@@ -45,7 +45,7 @@ namespace DrOpen.DrTask.DrtManager
         /// <summary>
         /// Event for request parent manager
         /// </summary>
-        public event EventHandler CallParent;
+        public event DDEventHandler CallParent;
 
         /// <summary>
         /// List of commands that current instance of manager supports from child managers

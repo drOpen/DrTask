@@ -37,6 +37,6 @@ namespace DrOpen.DrTask.DrtManager
         /// <summary>
         /// Event to interact with the parent manager
         /// </summary>
-        event EventHandler CallParent;
+        event DDEventHandler CallParent;
     }
 }
