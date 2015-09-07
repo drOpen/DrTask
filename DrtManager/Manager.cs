@@ -132,16 +132,17 @@ namespace DrOpen.DrTask.DrtManager
                 }
 
                 var currentPluginInstance = pluginList[currentPlugin];
-                // TBD: DDNode pluginConfig for currentPlugin - using method: private DDNode GetPluginConfig(DDNode pluginListNode, int currentPlugin)
+                DDNode pluginConfig = GetPluginConfig(pluginListNode, currentPlugin);
                 currentPlugin++;
 
                 var beforeExecuteEventArgs = new DDEventArgs();
                 ProcessBeforeExecute(currentPluginInstance, beforeExecuteEventArgs);
-                //if (beforeExecuteEventArgs.Cancel = true) continue; // another EventArgs class required
+                if (beforeExecuteEventArgs.ContainsKey("Cancel"))
+                    continue;
 
                 SubscribeToManager(currentPluginInstance);
                 var callParentEventArgs = new DDEventArgs();
-                currentPluginInstance.Execute(new DDNode()); // TBD: pluginConfig instead of [new DDNode()]
+                currentPluginInstance.Execute(pluginConfig);
                 // TBD: DDNode result = currentPluginInstance.Execute(pluginConfig);
 
                 if (currentPlugin == pluginListNode.Count)
@@ -154,8 +155,25 @@ namespace DrOpen.DrTask.DrtManager
             return new DDNode("GoodResult");
         }
 
-
         #region [Execute] supporting methods
+        /// <summary>
+        /// Returns config for [currentPlugin] plugin in [pluginsListNode]
+        /// </summary>
+        /// <param name="pluginsListNode">Node with PluginList from xml-config</param>
+        /// <param name="currentPlugin">Plugin for which configuration is requested</param>
+        /// <returns>Node with config for [currentPlugin] plugin</returns>
+        private DDNode GetPluginConfig(DDNode pluginsListNode, int currentPlugin)
+        {
+            int i = 0;
+            foreach (var pluginNode in pluginsListNode)
+            {
+                if (i == currentPlugin)
+                    return pluginNode.Value.GetNode("Configuration");
+                i++;
+            }
+            return new DDNode(); // not found, TBD: exception
+        }
+
         /// <summary>
         /// Method that subscribes for [plugin]'s BeforeExecute event and raises it.
         /// May be used to determine if [plugin] execution is needed or not
