@@ -30,6 +30,8 @@ using System;
 
 namespace DrOpen.DrTask.DrtPlugin
 {
+    public delegate void DDEventHandler(object sender, DDEventArgs e);
+
     /// <summary>
     /// Interface describes the base Plugin class
     /// </summary>
@@ -38,11 +40,11 @@ namespace DrOpen.DrTask.DrtPlugin
         /// <summary>
         /// raise event before execute plugin
         /// </summary>
-        event EventHandler BeforeExecute;
+        event DDEventHandler BeforeExecute;
         /// <summary>
         /// raise event after execute plugin
         /// </summary>
-        event EventHandler AfterExecute;
+        event DDEventHandler AfterExecute;
         /// <summary>
         /// Invokes execution of plugin with given config and additional data
         /// </summary>

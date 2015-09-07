@@ -254,12 +254,9 @@ namespace DrOpen.DrTask.DrtManager
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="simpleArgs"></param>
-        public void BeforeExecuteHandler(Object sender, EventArgs simpleArgs)
+        public void BeforeExecuteHandler(Object sender, DDEventArgs eventArgs)
         {
-            if (simpleArgs.GetType() == typeof(DDEventArgs))
-            {
-                DDEventArgs extendedArgs = (DDEventArgs)simpleArgs;
-            }
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -267,12 +264,9 @@ namespace DrOpen.DrTask.DrtManager
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="simpleArgs"></param>
-        public void AfterExecuteHandler(Object sender, EventArgs simpleArgs)
+        public void AfterExecuteHandler(Object sender, DDEventArgs eventArgs)
         {
-            if (simpleArgs.GetType() == typeof(DDEventArgs))
-            {
-                DDEventArgs extendedArgs = (DDEventArgs)simpleArgs;
-            }
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -280,14 +274,9 @@ namespace DrOpen.DrTask.DrtManager
         /// </summary>
         /// <param name="managerInstance"></param>
         /// <param name="simpleArgs"></param>
-        public void CallParentHandler(Object managerInstance, EventArgs simpleArgs)
+        public void CallParentHandler(Object managerInstance, DDEventArgs eventArgs)
         {
             //log.WriteDebug("Starting EventHandling...");
-            DDEventArgs extendedArgs = null;
-            if (simpleArgs.GetType() == typeof(DDEventArgs))
-            {
-                extendedArgs = (DDEventArgs)simpleArgs;
-            }
             try
             {
                 string commandName = FCommands.Sample; //extendedArgs.EventData.Attributes["commandName"].ToString();
@@ -295,7 +284,7 @@ namespace DrOpen.DrTask.DrtManager
 
                 if (supportedCommands.Contains(commandName))
                 {
-                    resultNode = FCommands.GetCommand(commandName).DoIt(extendedArgs.EventData);
+                    resultNode = FCommands.GetCommand(commandName).DoIt(eventArgs.EventData);
                 }
 
                 //if (commandName == FCommands.GoTo && resultNode.GetNode("GoTo").Attributes["Enabled"])
