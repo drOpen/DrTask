@@ -106,7 +106,7 @@ namespace DrOpen.DrTask.DrtManager
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                return new DDNode();// BadResult();
+                throw new ApplicationException(e.Message);
             }
         }
 
@@ -164,14 +164,21 @@ namespace DrOpen.DrTask.DrtManager
         /// <returns>Node with config for [currentPlugin] plugin</returns>
         private DDNode GetPluginConfig(DDNode pluginsListNode, int currentPlugin)
         {
-            int i = 0;
-            foreach (var pluginNode in pluginsListNode)
+            try
             {
-                if (i == currentPlugin)
-                    return pluginNode.Value.GetNode("Configuration");
-                i++;
+                int i = 0;
+                foreach (var pluginNode in pluginsListNode)
+                {
+                    if (i == currentPlugin)
+                        return pluginNode.Value.GetNode("Configuration");
+                    i++;
+                }
+                return null;
             }
-            return new DDNode(); // not found, TBD: exception
+            catch(Exception e)
+            {
+                throw new ApplicationException(e.Message);
+            }
         }
 
         /// <summary>
