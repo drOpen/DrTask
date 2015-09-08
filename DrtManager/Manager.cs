@@ -118,7 +118,7 @@ namespace DrOpen.DrTask.DrtManager
         /// <returns></returns>
         private DDNode DoExecute(DDNode config, params DDNode[] nodes)
         {
-            DDNode pluginListNode = config.GetNode("PluginList");
+            DDNode pluginListNode = config.GetNode(Manager.PluginList);
             IEnumerator<KeyValuePair<string, DDNode>> pluginNodeEnumerator = pluginListNode.GetEnumerator();
 
             while (currentPlugin < pluginListNode.Count)
@@ -137,7 +137,7 @@ namespace DrOpen.DrTask.DrtManager
 
                 var beforeExecuteEventArgs = new DDEventArgs();
                 ProcessBeforeExecute(currentPluginInstance, beforeExecuteEventArgs);
-                if (beforeExecuteEventArgs.ContainsKey("Cancel"))
+                if (beforeExecuteEventArgs.ContainsKey(Manager.Cancel))
                     continue;
 
                 SubscribeToManager(currentPluginInstance);
@@ -170,7 +170,7 @@ namespace DrOpen.DrTask.DrtManager
                 foreach (var pluginNode in pluginsListNode)
                 {
                     if (i == currentPlugin)
-                        return pluginNode.Value.GetNode("Configuration");
+                        return pluginNode.Value.GetNode(Manager.Configuration);
                     i++;
                 }
                 return null;
@@ -249,15 +249,15 @@ namespace DrOpen.DrTask.DrtManager
         /// <returns>Plugin object that meets [Configuration/Common] content</returns>
         private IPlugin GetPluginObject(DDNode pluginNode)
         {
-            DDNode pluginConfig = pluginNode.GetNode("Configuration");
-            DDNode pluginConfigCommon = pluginConfig.GetNode("Common");
+            DDNode pluginConfig = pluginNode.GetNode(Manager.Configuration);
+            DDNode pluginConfigCommon = pluginConfig.GetNode(Manager.Common);
             // If [Configuration/Common] node doesn't contain both DllPath and Class name attributes:
             // try to get them from [PathToConfig] node or from [Root/Plugins/<pluginNode.Name>]
-            if (!pluginConfigCommon.Contains("DllPath") || !pluginConfigCommon.Contains("Class"))
+            if (!pluginConfigCommon.Contains(Manager.DllPath) || !pluginConfigCommon.Contains(Manager.Class))
             {
-                if (pluginConfigCommon.Contains("PathToConfig"))
+                if (pluginConfigCommon.Contains(Manager.PathToConfig))
                 {
-                    pluginConfigCommon = pluginNode.GetRoot().GetNode(pluginConfigCommon.Attributes["PathToConfig"]);
+                    pluginConfigCommon = pluginNode.GetRoot().GetNode(pluginConfigCommon.Attributes[Manager.PathToConfig]);
                 }
                 else
                 {
@@ -266,8 +266,8 @@ namespace DrOpen.DrTask.DrtManager
                 // TBD: add fail resist here (if node is still not valid
             }
 
-            string ddlPath = pluginConfigCommon.Attributes["DllPath"];
-            string className = pluginConfigCommon.Attributes["Class"];
+            string ddlPath = pluginConfigCommon.Attributes[Manager.DllPath];
+            string className = pluginConfigCommon.Attributes[Manager.Class];
 
             return (IPlugin)this.GetObject(ddlPath, className);
         }
@@ -447,6 +447,15 @@ namespace DrOpen.DrTask.DrtManager
             return true;
         }
 
+        #endregion
+        #region const
+        private const string PluginList = "PluginList";
+        private const string Configuration = "Configuration";
+        private const string Common = "Common";
+        private const string DllPath = "DllPath";
+        private const string Class = "Class";
+        private const string PathToConfig = "PathToConfig";
+        public const string Cancel = "Cancel";
         #endregion
     }
 }
