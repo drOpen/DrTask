@@ -1,0 +1,136 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<DDNode Name="Root" IsRoot="true" Type="DrTest" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="DrData.xsd">
+  <DDNode Name="Servers" Type="ServerList" Children="1">
+    <DDAttributesCollection />
+    <DDNode Name="ServerA" Type="Server" Children="2">
+      <DDAttributesCollection />
+      <DDNode Name="Options" Type="Options">
+        <DDAttributesCollection Count="1">
+          <Attribute Name="URL">
+            <DDValue Type="System.String" Size="15">serv1.nwx.local</DDValue>
+          </Attribute>
+        </DDAttributesCollection>
+      </DDNode>
+      <DDNode Name="Parameters" Type="ServerParameters">
+        <DDAttributesCollection Count="1">
+          <Attribute Name="Attributes">
+            <DDValue Type="System.String" Size="10">Attributes</DDValue>
+          </Attribute>
+        </DDAttributesCollection>
+      </DDNode>
+    </DDNode>
+  </DDNode>
+  <DDNode Name="Plugins" Type="Plugins">
+    <DDNode Name="FileEnumPlugin" Type="PluginConfig">
+      <DDAttributesCollection>
+        <Attribute Name="DllPath">
+          <DDValue Type="System.String">C:\Users\Administrator\Source\Repos\DrTask\StubPlugin\bin\Debug\StubPlugin.dll</DDValue>
+        </Attribute>
+        <Attribute Name="ClassName">
+          <DDValue Type="System.String">StubPlugin</DDValue>
+        </Attribute>
+      </DDAttributesCollection>
+    </DDNode>
+    <DDNode Name="StubPlugin" Type="PluginConfig">
+      <DDAttributesCollection>
+        <Attribute Name="DllPath">
+          <DDValue Type="System.String">C:\Users\Administrator\Source\Repos\DrTask\StubPlugin\bin\Debug\StubPlugin.dll</DDValue>
+        </Attribute>
+        <Attribute Name="ClassName">
+          <DDValue Type="System.String">StubPlugin</DDValue>
+        </Attribute>
+      </DDAttributesCollection>
+    </DDNode>
+    <DDNode Name="Manager" Type="PluginConfig">
+      <DDAttributesCollection>
+        <Attribute Name="DllPath">
+          <DDValue Type="System.String">C:\Users\Administrator\Source\Repos\DrTask\DrtTestApp\bin\Debug\DrOpen.DrTask.DrtManager.dll</DDValue>
+        </Attribute>
+        <Attribute Name="ClassName">
+          <DDValue Type="System.String">Manager</DDValue>
+        </Attribute>
+      </DDAttributesCollection>
+    </DDNode>
+  </DDNode>
+  <DDNode Name="Tasks" Type="Tasks">
+    <DDNode Name="Task1" Type="Task">
+      <!--some task attributes and maybe retry rules etc.-->
+      <DDNode Name="PluginList" Type="PluginList">
+        <DDNode Name="FileEnumPlugin" Type="Plugin">
+          <DDNode Name="Configuration" Type="Configuration">
+            <DDNode Name="Common" Type="PluginConfig">
+              <DDAttributesCollection>
+                <Attribute Name="PathToConfig">
+                  <DDValue Type="System.String">Plugins/FileEnumPlugin</DDValue>
+                </Attribute>
+              </DDAttributesCollection>
+            </DDNode>
+            <DDNode Name="PluginSpecific" Type="PluginConfig">
+              <DDAttributesCollection>
+                <Attribute Name="FolderPath">
+                  <DDValue Type="System.String" Size="10">C:\Folder1</DDValue>
+                </Attribute>
+                <Attribute Name="Include">
+                  <DDValue Type="System.String" Size="1">*</DDValue>
+                </Attribute>
+                <Attribute Name="Exclude">
+                  <DDValue Type="System.String" Size="1"> </DDValue>
+                </Attribute>
+                <Attribute Name="Recurrent">
+                  <DDValue Type="System.String" Size="4">True</DDValue>
+                </Attribute>
+                <Attribute Name="OutputFolder">
+                  <DDValue Type="System.String" Size="14">C:\Test\Result</DDValue>
+                </Attribute>
+                <Attribute Name="sadAtrr">
+                  <DDValue Type="">asd</DDValue>
+                </Attribute>
+              </DDAttributesCollection>
+            </DDNode>
+          </DDNode>
+        </DDNode>
+        <DDNode Name="Manager" Type="Plugin">
+          <DDNode Name="Configuration" Type="Configuration">
+            <DDNode Name="Common" Type="PluginConfig">
+              <DDAttributesCollection>
+                <Attribute Name="PathToConfig">
+                  <DDValue Type="System.String">Plugins/Manager</DDValue>
+                </Attribute>
+              </DDAttributesCollection>
+            </DDNode>
+            <DDNode Name="PluginSpecific" Type="PluginConfig">
+              <DDNode Name="PluginList" Type="PluginList">
+                <DDNode Name="StubPlugin1" Type="Plugin">
+                  <DDNode Name="Configuration" Type="Configuration">
+                    <DDNode Name="Common" Type="PluginConfig">
+					  <DDAttributesCollection>
+						<Attribute Name="PathToConfig">
+						  <DDValue Type="System.String">Plugins/FileEnumPlugin</DDValue>
+						</Attribute>
+					  </DDAttributesCollection>
+                    </DDNode>
+                    <DDNode Name="PluginSpecific" Type="PluginConfig">
+                    </DDNode>
+                  </DDNode>
+                </DDNode>
+                <DDNode Name="StubPlugin2" Type="Plugin">
+                  <DDNode Name="Configuration" Type="Configuration">
+                    <DDNode Name="Common" Type="PluginConfig">
+					  <DDAttributesCollection>
+						<Attribute Name="PathToConfig">
+						  <DDValue Type="System.String">Plugins/FileEnumPlugin</DDValue>
+						</Attribute>
+					  </DDAttributesCollection>
+                    </DDNode>
+                    <DDNode Name="PluginSpecific" Type="PluginConfig">
+                    </DDNode>
+                  </DDNode>
+                </DDNode>
+              </DDNode>
+            </DDNode>
+          </DDNode>
+        </DDNode>
+      </DDNode>
+    </DDNode>
+  </DDNode>
+</DDNode>
