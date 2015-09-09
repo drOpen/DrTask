@@ -11,8 +11,9 @@ namespace DrtTestApp
         {
             DDNode taskNode = new DDNode();
             //string path = @"C:\Plugins\DrTaskConfig.xml";
-            string path = AppDomain.CurrentDomain.BaseDirectory.Replace("bin\\Debug\\", "") + "DrTaskConfig.xml";
-            XmlReader xmlFile = XmlReader.Create(path);
+            //string path = AppDomain.CurrentDomain.BaseDirectory.Replace("bin\\Debug\\", "") + "DrTaskConfig.xml";
+            string xmlName = @"./DrTaskConfig.xml";
+            XmlReader xmlFile = XmlReader.Create(xmlName);
             taskNode.ReadXml(xmlFile);
 
             var manager = new Manager();
