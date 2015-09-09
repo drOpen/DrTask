@@ -170,7 +170,7 @@ namespace DrOpen.DrTask.DrtManager
                 foreach (var pluginNode in pluginsListNode)
                 {
                     if (i == currentPlugin)
-                        return pluginNode.Value.GetNode(Manager.Configuration);
+                        return pluginNode.Value.GetNode(Manager.Configuration + "/" + Manager.PluginSpecific);
                     i++;
                 }
                 return null;
@@ -253,9 +253,9 @@ namespace DrOpen.DrTask.DrtManager
             DDNode pluginConfigCommon = pluginConfig.GetNode(Manager.Common);
             // If [Configuration/Common] node doesn't contain both DllPath and Class name attributes:
             // try to get them from [PathToConfig] node or from [Root/Plugins/<pluginNode.Name>]
-            if (!pluginConfigCommon.Contains(Manager.DllPath) || !pluginConfigCommon.Contains(Manager.Class))
+            if (!pluginConfigCommon.Contains(Manager.DllPath) || !pluginConfigCommon.Contains(Manager.ClassName))
             {
-                if (pluginConfigCommon.Contains(Manager.PathToConfig))
+                if (pluginConfigCommon.Attributes.Contains(Manager.PathToConfig))
                 {
                     pluginConfigCommon = pluginNode.GetRoot().GetNode(pluginConfigCommon.Attributes[Manager.PathToConfig]);
                 }
@@ -267,7 +267,7 @@ namespace DrOpen.DrTask.DrtManager
             }
 
             string ddlPath = pluginConfigCommon.Attributes[Manager.DllPath];
-            string className = pluginConfigCommon.Attributes[Manager.Class];
+            string className = pluginConfigCommon.Attributes[Manager.ClassName];
 
             return (IPlugin)this.GetObject(ddlPath, className);
         }
@@ -453,8 +453,9 @@ namespace DrOpen.DrTask.DrtManager
         private const string Configuration = "Configuration";
         private const string Common = "Common";
         private const string DllPath = "DllPath";
-        private const string Class = "Class";
+        private const string ClassName = "ClassName";
         private const string PathToConfig = "PathToConfig";
+        private const string PluginSpecific = "PluginSpecific";
         public const string Cancel = "Cancel";
         #endregion
     }
