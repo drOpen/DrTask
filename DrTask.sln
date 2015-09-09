@@ -11,6 +11,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DrLogClient", "..\DrCommon\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DrtManager", "DrtManager\DrtManager.csproj", "{2DDD08F8-E995-4E3D-9B6A-88EFE2AB62F7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DrtTestApp", "DrtTestApp\DrtTestApp.csproj", "{82F0E89F-7628-42AA-901C-9CC80873A678}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StubPlugin", "StubPlugin\StubPlugin.csproj", "{C7C0D34B-75F5-407E-A8C1-1CA944B22DF5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +37,14 @@ Global
 		{2DDD08F8-E995-4E3D-9B6A-88EFE2AB62F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2DDD08F8-E995-4E3D-9B6A-88EFE2AB62F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2DDD08F8-E995-4E3D-9B6A-88EFE2AB62F7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{82F0E89F-7628-42AA-901C-9CC80873A678}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{82F0E89F-7628-42AA-901C-9CC80873A678}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{82F0E89F-7628-42AA-901C-9CC80873A678}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{82F0E89F-7628-42AA-901C-9CC80873A678}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C7C0D34B-75F5-407E-A8C1-1CA944B22DF5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7C0D34B-75F5-407E-A8C1-1CA944B22DF5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C7C0D34B-75F5-407E-A8C1-1CA944B22DF5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C7C0D34B-75F5-407E-A8C1-1CA944B22DF5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
