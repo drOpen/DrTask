@@ -1,5 +1,4 @@
-﻿using DrOpen.DrCommon.DrData;
-/*
+﻿/*
 Manager.cs -- base manager for executing plugins 1.0.0, August 30, 2015
 
 Copyright (c) 2013-2015 Kudryashov Andrey aka Dr
@@ -33,6 +32,7 @@ using DrOpen.DrTask.DrtPlugin;
 using System;
 using System.Collections.Generic;
 using DrOpen.DrTask.DrtManager.Commands;
+using DrOpen.DrCommon.DrData;
 using System.Reflection;
 
 namespace DrOpen.DrTask.DrtManager
