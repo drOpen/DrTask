@@ -1,5 +1,4 @@
-﻿using DrOpen.DrCommon.DrData;
-/*
+﻿/*
 Manager.cs -- base manager for executing plugins 1.0.0, August 30, 2015
 
 Copyright (c) 2013-2015 Kudryashov Andrey aka Dr
@@ -33,6 +32,7 @@ using DrOpen.DrTask.DrtPlugin;
 using System;
 using System.Collections.Generic;
 using DrOpen.DrTask.DrtManager.Commands;
+using DrOpen.DrCommon.DrData;
 using System.Reflection;
 
 namespace DrOpen.DrTask.DrtManager
@@ -52,13 +52,18 @@ namespace DrOpen.DrTask.DrtManager
         /// </summary>
         private readonly List<string> supportedCommands;
         /// <summary>
-        /// List of already loaded plugin objects
+        /// Collection of loaded plugin objects with specified IDs
         /// </summary>
-        private List<IPlugin> pluginList;
+        private Dictionary<string, IPlugin> taskList;
         /// <summary>
-        /// Currently executing plugin. Could be changed by child manager request
+        /// Name (unique string ID) of current task
         /// </summary>
-        int currentPlugin;
+        private string currentTask;
+        /// <summary>
+        /// Array of of task names in right execution order (according to given config)
+        /// </summary>
+        private string[] taskOrder;
+
 
 
         public Manager()
@@ -68,8 +73,8 @@ namespace DrOpen.DrTask.DrtManager
                 FCommands.Sample
             };
 
-            pluginList = new List<IPlugin>();
-            currentPlugin = 0;
+            taskList = new Dictionary<string, IPlugin>();
+            currentTask = null;
         }
 
 
@@ -80,14 +85,7 @@ namespace DrOpen.DrTask.DrtManager
         /// <returns>This method returns true if given command is supported, false otherwise</returns>
         public bool IsSupportedCommand(string command)
         {
-            try
-            {
-                return supportedCommands.Contains(command);
-            }
-            catch (Exception e)
-            {
-                return false;
-            }
+            return supportedCommands.Contains(command);
         }
 
         /// <summary>
@@ -100,13 +98,20 @@ namespace DrOpen.DrTask.DrtManager
         {
             try
             {
-                currentPlugin = 0;
-                return DoExecute(config, nodes);
+                var beforeExecuteArgs = new DDEventArgs();
+                DoBeforeExecute(beforeExecuteArgs);
+                if (beforeExecuteArgs.ContainsKey(Manager.Cancel))
+                    throw new NotImplementedException();
+
+                currentTask = null;
+                var result = DoExecute(config, nodes);
+                DoAfterExecute(new DDEventArgs()); // ToDo: what happens here?
+                return result;
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-                throw new ApplicationException(e.Message);
+                log.WriteError(e, "Execute failure");
+                throw new ApplicationException("Cannot execute Manager", e);
             }
         }
 
@@ -118,95 +123,128 @@ namespace DrOpen.DrTask.DrtManager
         /// <returns></returns>
         private DDNode DoExecute(DDNode config, params DDNode[] nodes)
         {
-            DDNode pluginListNode = config.GetNode(Manager.PluginList);
-            IEnumerator<KeyValuePair<string, DDNode>> pluginNodeEnumerator = pluginListNode.GetEnumerator();
+            DDNode taskListNode = GetTaskList(config);
+            BuildTaskOrder(taskListNode);
 
-            while (currentPlugin < pluginListNode.Count)
+            while(currentTask != null)
             {
-                // if (IPlugin) object for [currentPlugin] isn't created yet - creates it
-                if (currentPlugin >= pluginList.Count)
-                {
-                    pluginNodeEnumerator.MoveNext();
-                    DDNode pluginNode = pluginNodeEnumerator.Current.Value;
-                    this.pluginList.Add(GetPluginObject(pluginNode));
-                }
+                IPlugin currentTaskInstance = getNextTask(taskListNode);
 
-                var currentPluginInstance = pluginList[currentPlugin];
-                DDNode pluginConfig = GetPluginConfig(pluginListNode, currentPlugin);
-                currentPlugin++;
+                DDNode taskConfig = GetTaskConfig(taskListNode, currentTask);
+                currentTaskInstance.Execute(taskConfig);
 
-                var beforeExecuteEventArgs = new DDEventArgs();
-                ProcessBeforeExecute(currentPluginInstance, beforeExecuteEventArgs);
-                if (beforeExecuteEventArgs.ContainsKey(Manager.Cancel))
-                    continue;
-
-                SubscribeToManager(currentPluginInstance);
-                var callParentEventArgs = new DDEventArgs();
-                currentPluginInstance.Execute(pluginConfig);
-                // TBD: DDNode result = currentPluginInstance.Execute(pluginConfig);
-
-                if (currentPlugin == pluginListNode.Count)
-                    this.DoCallParent(callParentEventArgs);
-
-                ProcessAfterExecute(currentPluginInstance, new DDEventArgs());
+                setCurrentTask();   // ToDo: if-else
+                                    // if somebody has used overloaded verison and has set currentTask to specific task - skip this 
             }
-            
 
-            return new DDNode("GoodResult");
+            return new DDNode("GoodResult"); // ToDo create stub static positive and negative Execute result and return it
         }
+
 
         #region [Execute] supporting methods
         /// <summary>
-        /// Returns config for [currentPlugin] plugin in [pluginsListNode]
+        /// Returns plugin specific config for task [taskName]
         /// </summary>
-        /// <param name="pluginsListNode">Node with PluginList from xml-config</param>
-        /// <param name="currentPlugin">Plugin for which configuration is requested</param>
-        /// <returns>Node with config for [currentPlugin] plugin</returns>
-        private DDNode GetPluginConfig(DDNode pluginsListNode, int currentPlugin)
+        /// <param name="taskListNode">Node with TaskList</param>
+        /// <param name="taskName">Name (unique at its level ID) of task</param>
+        /// <returns></returns>
+        private DDNode GetTaskConfig(DDNode taskListNode, string taskName)
         {
-            try
-            {
-                int i = 0;
-                foreach (var pluginNode in pluginsListNode)
-                {
-                    if (i == currentPlugin)
-                        return pluginNode.Value.GetNode(Manager.Configuration + "/" + Manager.PluginSpecific);
-                    i++;
-                }
-                return null;
-            }
-            catch(Exception e)
-            {
-                throw new ApplicationException(e.Message);
-            }
+            if (taskListNode.Contains(taskName))
+                return taskListNode.GetNode(taskName + "/" + Manager.Configuration + "/" + Manager.PluginSpecific);
+            else
+                return null; // TODO: to be discussed
         }
 
         /// <summary>
-        /// Method that subscribes for [plugin]'s BeforeExecute event and raises it.
-        /// May be used to determine if [plugin] execution is needed or not
+        /// Returns TaskList if given config contains one
         /// </summary>
-        /// <param name="plugin">Currently beeing executed plugin</param>
-        /// <param name="beforeEventArgs">Event arguments</param>
-        private void ProcessBeforeExecute(IPlugin plugin, DDEventArgs beforeEventArgs)
+        /// <param name="config">Config for manager</param>
+        /// <returns></returns>
+        private DDNode GetTaskList(DDNode config)
         {
-            plugin.BeforeExecute += this.BeforeExecuteHandler;
-            plugin.DoBeforeExecute(beforeEventArgs);
-            plugin.BeforeExecute -= this.BeforeExecuteHandler;
+            if (config.Contains(Manager.TaskList))
+                return config.GetNode(Manager.TaskList);
+            throw new NotImplementedException(); // ToDo handling if there isn't any TaskList node
         }
 
         /// <summary>
-        /// Method that subscribes for [plugin]'s BeforeExecute event and raises it.
+        /// Creates array of task names using the same task order as [taskListNode]
+        /// and sets currentPlugin to first in this array
         /// </summary>
-        /// <param name="plugin">Currently beeing executed plugin</param>
-        /// <param name="afterEventArgs">Event arguments</param>
-        private void ProcessAfterExecute(IPlugin plugin, DDEventArgs afterEventArgs)
+        private void BuildTaskOrder(DDNode taskListNode)
         {
-            plugin.AfterExecute += this.AfterExecuteHandler;
-            plugin.DoAfterExecute(afterEventArgs);
-            plugin.AfterExecute -= this.AfterExecuteHandler;
-
-            //this.CallUp -= this.EventHandling;
+            taskOrder = new string[taskListNode.Count];
+            int i = 0;
+            foreach(var taskNode in taskListNode)
+            {
+                taskOrder[i] = taskNode.Value.Name;
+                i++;
+            }
+            setCurrentTask(0);
         }
+
+        /// <summary>
+        /// Sets [this].[currentTask] to next element in [taskOrder] array
+        /// </summary>
+        private void setCurrentTask()
+        {
+            int currentIndex = Array.IndexOf(taskOrder, currentTask);
+            if (currentIndex == taskOrder.Length)
+                currentTask = null;
+            else
+                currentTask = taskOrder[currentIndex + 1];
+        }
+
+        /// <summary>
+        /// Sets [this].[currentTask] to <taskName> value if it exists in taskOrder array
+        /// </summary>
+        /// <param name="taskName">Name (unique at the level ID) of task</param>
+        private void setCurrentTask(string taskName)
+        {
+            if (Array.IndexOf(taskOrder, taskName) != -1)
+                currentTask = taskName;
+            else
+                currentTask = null; // TODO: to be discussed
+        }
+
+        /// <summary>
+        /// Sets [this].[currentTask] to [taskOrder][index] if it's not out of range
+        /// </summary>
+        /// <param name="index">Index of task is [taskOrder] array</param>
+        private void setCurrentTask(int index)
+        {
+            if (index < taskOrder.Length)
+                currentTask = taskOrder[index];
+            else
+                currentTask = null; // TODO: to be discussed
+        }
+
+        /// <summary>
+        /// Returns [currentTask] plugin object for further execution
+        /// If it isn't created yet - creates it first and subscribes for its events
+        /// </summary>
+        /// <param name="taskListNode"></param>
+        /// <returns></returns>
+        private IPlugin getNextTask(DDNode taskListNode)
+        {
+            // If object for task [currentTask] is not created yet:
+            if(!taskList.ContainsKey(currentTask))
+            {
+                if (!taskListNode.Contains(currentTask))
+                    throw new NotImplementedException(); // ToDo: not existant node handling
+                DDNode pluginNode = taskListNode.GetNode(currentTask);
+                IPlugin newTask = GetPluginObject(pluginNode);
+
+                taskList.Add(currentTask, newTask);
+                newTask.BeforeExecute += BeforeExecuteHandler;
+                newTask.AfterExecute += AfterExecuteHandler;
+                SubscribeToManager(newTask);
+            }
+
+            return taskList[currentTask];
+        }
+        
 
         /// <summary>
         /// Subscribe CallParentHandler method to CallParent event if it's Manager object boxed into IPlugin
@@ -228,15 +266,18 @@ namespace DrOpen.DrTask.DrtManager
         /// <param name="eventArgs">Event arguments</param>
         public void DoCallParent(DDEventArgs eventArgs)
         {
+            log.WriteTrace("Starting DoCallParent...");
             try
             {
                 if (CallParent != null)
                     CallParent(this, eventArgs);
 
-                Console.WriteLine("\tCall up started.");
+                log.WriteTrace("CallParent started.");
             }
             catch (Exception e)
             {
+                log.WriteError(e, "CallParent event failed");
+                throw new ApplicationException("CallParent event failed", e);
             }
         }
 
@@ -312,8 +353,6 @@ namespace DrOpen.DrTask.DrtManager
                     resultNode = FCommands.GetCommand(commandName).DoIt(eventArgs.EventData);
                 }
 
-                //if (commandName == FCommands.GoTo && resultNode.GetNode("GoTo").Attributes["Enabled"])
-                //    currentPlugin = resultNode.GetNode("GoTo").Attributes["PluginToGo"];
 
                 //log.WriteDebug("EventHandling started succesfull");
             }
@@ -339,13 +378,14 @@ namespace DrOpen.DrTask.DrtManager
                 object providerObject = GetSpecifiedObject(reflectedDLL.GetTypes(), classType, constructorParamsArray);
 
                 if (providerObject != null) return providerObject;
+                else
+                    throw new ApplicationException("Cannot get object: There are no class|dll|construcotor...");
             }
             catch (Exception e)
             {
-                throw new ApplicationException(e.Message);
+                log.WriteError(e, "GetObject failure");
+                throw new ApplicationException("GetObject failure", e); 
             }
-
-            throw new ApplicationException("There are no class|dll|construcotor...");
         }
 
         /// <summary>
@@ -360,14 +400,16 @@ namespace DrOpen.DrTask.DrtManager
 
                 object providerObject = GetSpecifiedObject(reflectedDLL.GetTypes(), className, constructorParamsArray);
 
-                if (providerObject != null) return providerObject;
+                if (providerObject != null)
+                    return providerObject;
+                else
+                    throw new ApplicationException("Cannot get object: There are no class|dll|construcotor...");
             }
             catch (Exception e)
             {
-                throw new ApplicationException(e.Message);
+                log.WriteError(e, "GetObject failure");
+                throw new ApplicationException("GetObject failure", e);
             }
-
-            throw new ApplicationException("There are no class|dll|construcotor...");
         }
 
         /// <summary>
@@ -449,7 +491,7 @@ namespace DrOpen.DrTask.DrtManager
 
         #endregion
         #region const
-        private const string PluginList = "PluginList";
+        private const string TaskList = "TaskList";
         private const string Configuration = "Configuration";
         private const string Common = "Common";
         private const string DllPath = "DllPath";
