@@ -190,7 +190,7 @@ namespace DrOpen.DrTask.DrtManager
         private void setCurrentTask()
         {
             int currentIndex = Array.IndexOf(taskOrder, currentTask);
-            if (currentIndex == taskOrder.Length)
+            if (currentIndex + 1 >= taskOrder.Length)
                 currentTask = null;
             else
                 currentTask = taskOrder[currentIndex + 1];
