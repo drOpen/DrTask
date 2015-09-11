@@ -111,13 +111,11 @@ namespace DrOpen.DrTask.DrtManager
                 var result = DoExecute(config, nodes);
                 DoAfterExecute(new DDEventArgs());
                 return result;
-                // ToDo Event after 
             }
             catch (Exception e)
             {
-                Console.WriteLine(e); // ToDo log.WriteError
-                throw;
-                throw new ApplicationException(e.Message); // ToDo throw new ApplicationException("Cannot execute ....", e);
+                log.WriteError(e, "Execute failure");
+                throw new ApplicationException("Cannot execute Manager", e);
             }
         }
 
@@ -129,42 +127,22 @@ namespace DrOpen.DrTask.DrtManager
         /// <returns></returns>
         private DDNode DoExecute(DDNode config, params DDNode[] nodes)
         {
-            DDNode pluginListNode = config.GetNode(Manager.PluginList); // null reference?? catch exception
-            IEnumerator<KeyValuePair<string, DDNode>> pluginNodeEnumerator = pluginListNode.GetEnumerator();
+            DDNode taskListNode = GetTaskList(config);
+            BuildTaskOrder(taskListNode);
 
-            while (currentPlugin < pluginListNode.Count)
+            while(currentTask != null)
             {
-                // if (IPlugin) object for [currentPlugin] isn't created yet - creates it
-                if (currentPlugin >= pluginList.Count)
-                {
-                    pluginNodeEnumerator.MoveNext();
-                    DDNode pluginNode = pluginNodeEnumerator.Current.Value;
-                    this.pluginList.Add(GetPluginObject(pluginNode));
-                }
+                IPlugin currentTaskInstance = getNextTask(taskListNode);
 
-                var currentPluginInstance = pluginList[currentPlugin];
-                DDNode pluginConfig = GetPluginConfig(pluginListNode, currentPlugin);
-                currentPlugin++;
+                DDNode taskConfig = GetTaskConfig(taskListNode, currentTask);
+                currentTaskInstance.Execute(taskConfig);
 
-                var beforeExecuteEventArgs = new DDEventArgs();
-                ProcessBeforeExecute(currentPluginInstance, beforeExecuteEventArgs);
-                if (beforeExecuteEventArgs.ContainsKey(Manager.Cancel))
-                    continue;
-
-                SubscribeToManager(currentPluginInstance);
-                var callParentEventArgs = new DDEventArgs();
-                currentPluginInstance.Execute(pluginConfig);
-                // TBD: DDNode result = currentPluginInstance.Execute(pluginConfig);
-
-                if (currentPlugin == pluginListNode.Count)
-                    this.DoCallParent(callParentEventArgs);
-
-                ProcessAfterExecute(currentPluginInstance, new DDEventArgs());
+                setCurrentTask();
             }
-            
 
             return new DDNode("GoodResult"); // ToDo create stub static positive and negative Execute result and return it
         }
+
 
         #region [Execute] supporting methods
         /// <summary>
@@ -181,13 +159,33 @@ namespace DrOpen.DrTask.DrtManager
                 return null; // TODO: to be discussed
         }
 
-        private DDNode GetTaskList()
+        /// <summary>
+        /// Returns TaskList if given config contains one
+        /// </summary>
+        /// <param name="config">Config for manager</param>
+        /// <returns></returns>
+        private DDNode GetTaskList(DDNode config)
         {
-            return new DDNode();
+            if (config.Contains(Manager.TaskList))
+                return config.GetNode(Manager.TaskList);
+            throw new NotImplementedException(); // ToDo handling if there isn't any TaskList node
         }
 
-        private void BuildTaskOrder()
-        { }
+        /// <summary>
+        /// Creates array of task names using the same task order as [taskListNode]
+        /// and sets currentPlugin to first in this array
+        /// </summary>
+        private void BuildTaskOrder(DDNode taskListNode)
+        {
+            taskOrder = new string[taskListNode.Count];
+            int i = 0;
+            foreach(var taskNode in taskListNode)
+            {
+                taskOrder[i] = taskNode.Value.Name;
+                i++;
+            }
+            setCurrentTask(0);
+        }
 
         /// <summary>
         /// Sets [this].[currentTask] to next element in [taskOrder] array
@@ -227,7 +225,7 @@ namespace DrOpen.DrTask.DrtManager
 
         /// <summary>
         /// Returns [currentTask] plugin object for further execution
-        /// If it isn't created yet - creates it first
+        /// If it isn't created yet - creates it first and subscribes for its events
         /// </summary>
         /// <param name="taskListNode"></param>
         /// <returns></returns>
@@ -238,7 +236,12 @@ namespace DrOpen.DrTask.DrtManager
                 if (!taskListNode.Contains(currentTask))
                     throw new NotImplementedException(); // TODO: not existant node handling
                 DDNode pluginNode = taskListNode.GetNode(currentTask);
-                taskList.Add(currentTask, GetPluginObject(pluginNode));
+                IPlugin newTask = GetPluginObject(pluginNode);
+
+                taskList.Add(currentTask, newTask);
+                newTask.BeforeExecute += BeforeExecuteHandler;
+                newTask.AfterExecute += AfterExecuteHandler;
+                SubscribeToManager(newTask);
             }
 
             return taskList[currentTask];
@@ -267,33 +270,6 @@ namespace DrOpen.DrTask.DrtManager
             {
                 throw new ApplicationException(e.Message);
             }
-        }
-
-        /// <summary>
-        /// Method that subscribes for [plugin]'s BeforeExecute event and raises it.
-        /// May be used to determine if [plugin] execution is needed or not
-        /// </summary>
-        /// <param name="plugin">Currently beeing executed plugin</param>
-        /// <param name="beforeEventArgs">Event arguments</param>
-        private void ProcessBeforeExecute(IPlugin plugin, DDEventArgs beforeEventArgs)
-        {
-            plugin.BeforeExecute += this.BeforeExecuteHandler; // ToDo Why?
-            plugin.DoBeforeExecute(beforeEventArgs);
-            plugin.BeforeExecute -= this.BeforeExecuteHandler; // ToDo Why?
-        }
-
-        /// <summary>
-        /// Method that subscribes for [plugin]'s BeforeExecute event and raises it.
-        /// </summary>
-        /// <param name="plugin">Currently beeing executed plugin</param>
-        /// <param name="afterEventArgs">Event arguments</param>
-        private void ProcessAfterExecute(IPlugin plugin, DDEventArgs afterEventArgs)
-        { 
-            plugin.AfterExecute += this.AfterExecuteHandler;// ToDo Why?
-            plugin.DoAfterExecute(afterEventArgs);
-            plugin.AfterExecute -= this.AfterExecuteHandler;// ToDo Why?
-
-            //this.CallUp -= this.EventHandling;
         }
 
         /// <summary>
@@ -539,6 +515,7 @@ namespace DrOpen.DrTask.DrtManager
         #endregion
         #region const
         private const string PluginList = "PluginList";
+        private const string TaskList = "TaskList";
         private const string Configuration = "Configuration";
         private const string Common = "Common";
         private const string DllPath = "DllPath";
