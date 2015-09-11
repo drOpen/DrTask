@@ -1,4 +1,3 @@
-﻿using DrOpen.DrCommon.DrData;
 /*
 Manager.cs -- base manager for executing plugins 1.0.0, August 30, 2015
 
@@ -34,6 +33,7 @@ using System;
 using System.Collections.Generic;
 using DrOpen.DrTask.DrtManager.Commands;
 using System.Reflection;
+using DrOpen.DrCommon.DrData;
 
 namespace DrOpen.DrTask.DrtManager
 {
@@ -69,7 +69,7 @@ namespace DrOpen.DrTask.DrtManager
             };
 
             pluginList = new List<IPlugin>();
-            currentPlugin = 0;
+            currentPlugin = 0; // ToDo remove int position, need to switch to queue
         }
 
 
@@ -80,7 +80,7 @@ namespace DrOpen.DrTask.DrtManager
         /// <returns>This method returns true if given command is supported, false otherwise</returns>
         public bool IsSupportedCommand(string command)
         {
-            try
+            try // ToDo remove try catch
             {
                 return supportedCommands.Contains(command);
             }
@@ -100,13 +100,15 @@ namespace DrOpen.DrTask.DrtManager
         {
             try
             {
-                currentPlugin = 0;
+                // ToDo Event before and validate Cancel 
+                currentPlugin = 0; // ToDo remove int position, need to switch to queue
                 return DoExecute(config, nodes);
+                // ToDo Event after 
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-                throw new ApplicationException(e.Message);
+                Console.WriteLine(e); // ToDo log.WriteError
+                throw new ApplicationException(e.Message); // ToDo throw new ApplicationException("Cannot execute ....", e);
             }
         }
 
@@ -118,7 +120,7 @@ namespace DrOpen.DrTask.DrtManager
         /// <returns></returns>
         private DDNode DoExecute(DDNode config, params DDNode[] nodes)
         {
-            DDNode pluginListNode = config.GetNode(Manager.PluginList);
+            DDNode pluginListNode = config.GetNode(Manager.PluginList); // null reference?? catch exception
             IEnumerator<KeyValuePair<string, DDNode>> pluginNodeEnumerator = pluginListNode.GetEnumerator();
 
             while (currentPlugin < pluginListNode.Count)
@@ -152,7 +154,7 @@ namespace DrOpen.DrTask.DrtManager
             }
             
 
-            return new DDNode("GoodResult");
+            return new DDNode("GoodResult"); // ToDo create stub static positive and negative Execute result and return it
         }
 
         #region [Execute] supporting methods
@@ -162,7 +164,7 @@ namespace DrOpen.DrTask.DrtManager
         /// <param name="pluginsListNode">Node with PluginList from xml-config</param>
         /// <param name="currentPlugin">Plugin for which configuration is requested</param>
         /// <returns>Node with config for [currentPlugin] plugin</returns>
-        private DDNode GetPluginConfig(DDNode pluginsListNode, int currentPlugin)
+        private DDNode GetPluginConfig(DDNode pluginsListNode, int currentPlugin) // ToDo remove this stupid function
         {
             try
             {
@@ -189,9 +191,9 @@ namespace DrOpen.DrTask.DrtManager
         /// <param name="beforeEventArgs">Event arguments</param>
         private void ProcessBeforeExecute(IPlugin plugin, DDEventArgs beforeEventArgs)
         {
-            plugin.BeforeExecute += this.BeforeExecuteHandler;
+            plugin.BeforeExecute += this.BeforeExecuteHandler; // ToDo Why?
             plugin.DoBeforeExecute(beforeEventArgs);
-            plugin.BeforeExecute -= this.BeforeExecuteHandler;
+            plugin.BeforeExecute -= this.BeforeExecuteHandler; // ToDo Why?
         }
 
         /// <summary>
@@ -200,10 +202,10 @@ namespace DrOpen.DrTask.DrtManager
         /// <param name="plugin">Currently beeing executed plugin</param>
         /// <param name="afterEventArgs">Event arguments</param>
         private void ProcessAfterExecute(IPlugin plugin, DDEventArgs afterEventArgs)
-        {
-            plugin.AfterExecute += this.AfterExecuteHandler;
+        { 
+            plugin.AfterExecute += this.AfterExecuteHandler;// ToDo Why?
             plugin.DoAfterExecute(afterEventArgs);
-            plugin.AfterExecute -= this.AfterExecuteHandler;
+            plugin.AfterExecute -= this.AfterExecuteHandler;// ToDo Why?
 
             //this.CallUp -= this.EventHandling;
         }
@@ -237,6 +239,7 @@ namespace DrOpen.DrTask.DrtManager
             }
             catch (Exception e)
             {
+                // ToDo - Вщ not ever do this. Where are logging and throw?
             }
         }
 
@@ -342,10 +345,10 @@ namespace DrOpen.DrTask.DrtManager
             }
             catch (Exception e)
             {
-                throw new ApplicationException(e.Message);
+                throw new ApplicationException(e.Message); // ToDo log.WriteError + throw ... look for previous comment about the same issue
             }
 
-            throw new ApplicationException("There are no class|dll|construcotor...");
+            throw new ApplicationException("There are no class|dll|construcotor..."); // ToDo Why?
         }
 
         /// <summary>
