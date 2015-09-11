@@ -54,11 +54,17 @@ namespace DrOpen.DrTask.DrtManager
         /// <summary>
         /// List of already loaded plugin objects
         /// </summary>
-        private List<IPlugin> pluginList;
+        //private List<IPlugin> pluginList;
+        /// <summary>
+        /// Collection of loaded plugin objects with specified IDs
+        /// </summary>
+        private Dictionary<string, IPlugin> taskList;
+        private string currentTask;
+        private string[] taskOrder;
         /// <summary>
         /// Currently executing plugin. Could be changed by child manager request
         /// </summary>
-        int currentPlugin;
+        //private int currentPlugin;
 
 
         public Manager()
@@ -68,8 +74,10 @@ namespace DrOpen.DrTask.DrtManager
                 FCommands.Sample
             };
 
-            pluginList = new List<IPlugin>();
-            currentPlugin = 0;
+            //pluginList = new List<IPlugin>();
+            taskList = new Dictionary<string, IPlugin>();
+            currentTask = null;
+            //currentPlugin = 0;
         }
 
 
@@ -80,14 +88,7 @@ namespace DrOpen.DrTask.DrtManager
         /// <returns>This method returns true if given command is supported, false otherwise</returns>
         public bool IsSupportedCommand(string command)
         {
-            try
-            {
-                return supportedCommands.Contains(command);
-            }
-            catch (Exception e)
-            {
-                return false;
-            }
+            return supportedCommands.Contains(command);
         }
 
         /// <summary>
@@ -100,13 +101,20 @@ namespace DrOpen.DrTask.DrtManager
         {
             try
             {
-                currentPlugin = 0;
-                return DoExecute(config, nodes);
+                var beforeExecuteArgs = new DDEventArgs();
+                DoBeforeExecute(beforeExecuteArgs);
+                if (beforeExecuteArgs.ContainsKey(Manager.Cancel))
+                    throw new NotImplementedException();
+
+                //currentPlugin = 0;
+                currentTask = null;
+                var result = DoExecute(config, nodes);
+                DoAfterExecute(new DDEventArgs());
+                return result;
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-                throw new ApplicationException(e.Message);
+                throw;
             }
         }
 
@@ -156,6 +164,83 @@ namespace DrOpen.DrTask.DrtManager
         }
 
         #region [Execute] supporting methods
+        /// <summary>
+        /// Returns plugin specific config for task [taskName]
+        /// </summary>
+        /// <param name="taskListNode">Node with TaskList</param>
+        /// <param name="taskName">Name (unique at its level ID) of task</param>
+        /// <returns></returns>
+        private DDNode GetTaskConfig(DDNode taskListNode, string taskName)
+        {
+            if (taskListNode.Contains(taskName))
+                return taskListNode.GetNode(taskName + "/" + Manager.Configuration + "/" + Manager.PluginSpecific);
+            else
+                return null; // TODO: to be discussed
+        }
+
+        private DDNode GetTaskList()
+        {
+            return new DDNode();
+        }
+
+        private void BuildTaskOrder()
+        { }
+
+        /// <summary>
+        /// Sets [this].[currentTask] to next element in [taskOrder] array
+        /// </summary>
+        private void setCurrentTask()
+        {
+            int currentIndex = Array.IndexOf(taskOrder, currentTask);
+            if (currentIndex == taskOrder.Length)
+                currentTask = null;
+            else
+                currentTask = taskOrder[currentIndex + 1];
+        }
+
+        /// <summary>
+        /// Sets [this].[currentTask] to <taskName> value if it exists in taskOrder array
+        /// </summary>
+        /// <param name="taskName">Name (unique at the level ID) of task</param>
+        private void setCurrentTask(string taskName)
+        {
+            if (Array.IndexOf(taskOrder, taskName) != -1)
+                currentTask = taskName;
+            else
+                currentTask = null; // TODO: to be discussed
+        }
+
+        /// <summary>
+        /// Sets [this].[currentTask] to [taskOrder][index] if it's not out of range
+        /// </summary>
+        /// <param name="index">Index of task is [taskOrder] array</param>
+        private void setCurrentTask(int index)
+        {
+            if (index < taskOrder.Length)
+                currentTask = taskOrder[index];
+            else
+                currentTask = null; // TODO: to be discussed
+        }
+
+        /// <summary>
+        /// Returns [currentTask] plugin object for further execution
+        /// If it isn't created yet - creates it first
+        /// </summary>
+        /// <param name="taskListNode"></param>
+        /// <returns></returns>
+        private IPlugin getNextTask(DDNode taskListNode)
+        {
+            if(!taskList.ContainsKey(currentTask))
+            {
+                if (!taskListNode.Contains(currentTask))
+                    throw new NotImplementedException(); // TODO: not existant node handling
+                DDNode pluginNode = taskListNode.GetNode(currentTask);
+                taskList.Add(currentTask, GetPluginObject(pluginNode));
+            }
+
+            return taskList[currentTask];
+        }
+        
         /// <summary>
         /// Returns config for [currentPlugin] plugin in [pluginsListNode]
         /// </summary>
