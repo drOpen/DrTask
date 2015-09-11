@@ -17,7 +17,7 @@ namespace DrtTestApp
             taskNode.ReadXml(xmlFile);
 
             var manager = new Manager();
-            manager.Execute(taskNode.GetNode("Tasks/Task1"));
+            manager.Execute(taskNode);
 
             Console.WriteLine("");
         }

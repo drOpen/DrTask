@@ -52,79 +52,75 @@
       </DDAttributesCollection>
     </DDNode>
   </DDNode>
-  <DDNode Name="Tasks" Type="Tasks">
-    <DDNode Name="Task1" Type="Task">
+  <DDNode Name="TaskList" Type="TaskList">
       <!--some task attributes and maybe retry rules etc.-->
-      <DDNode Name="PluginList" Type="PluginList">
-        <DDNode Name="FileEnumPlugin" Type="Plugin">
-          <DDNode Name="Configuration" Type="Configuration">
-            <DDNode Name="Common" Type="PluginConfig">
-              <DDAttributesCollection>
-                <Attribute Name="PathToConfig">
-                  <DDValue Type="System.String">Plugins/FileEnumPlugin</DDValue>
-                </Attribute>
-              </DDAttributesCollection>
-            </DDNode>
-            <DDNode Name="PluginSpecific" Type="PluginConfig">
-              <DDAttributesCollection>
-                <Attribute Name="FolderPath">
-                  <DDValue Type="System.String" Size="10">C:\Folder1</DDValue>
-                </Attribute>
-                <Attribute Name="Include">
-                  <DDValue Type="System.String" Size="1">*</DDValue>
-                </Attribute>
-                <Attribute Name="Exclude">
-                  <DDValue Type="System.String" Size="1"> </DDValue>
-                </Attribute>
-                <Attribute Name="Recurrent">
-                  <DDValue Type="System.String" Size="4">True</DDValue>
-                </Attribute>
-                <Attribute Name="OutputFolder">
-                  <DDValue Type="System.String" Size="14">C:\Test\Result</DDValue>
-                </Attribute>
-                <Attribute Name="sadAtrr">
-                  <DDValue Type="">asd</DDValue>
-                </Attribute>
-              </DDAttributesCollection>
-            </DDNode>
-          </DDNode>
+    <DDNode Name="FileEnumPlugin_task" Type="Task">
+      <DDNode Name="Configuration" Type="Configuration">
+        <DDNode Name="Common" Type="PluginConfig">
+          <DDAttributesCollection>
+            <Attribute Name="PathToConfig">
+              <DDValue Type="System.String">Plugins/FileEnumPlugin</DDValue>
+            </Attribute>
+          </DDAttributesCollection>
         </DDNode>
-        <DDNode Name="Manager" Type="Plugin">
-          <DDNode Name="Configuration" Type="Configuration">
-            <DDNode Name="Common" Type="PluginConfig">
-              <DDAttributesCollection>
-                <Attribute Name="PathToConfig">
-                  <DDValue Type="System.String">Plugins/Manager</DDValue>
-                </Attribute>
-              </DDAttributesCollection>
-            </DDNode>
-            <DDNode Name="PluginSpecific" Type="PluginConfig">
-              <DDNode Name="PluginList" Type="PluginList">
-                <DDNode Name="StubPlugin1" Type="Plugin">
-                  <DDNode Name="Configuration" Type="Configuration">
-                    <DDNode Name="Common" Type="PluginConfig">
-					  <DDAttributesCollection>
-						<Attribute Name="PathToConfig">
-						  <DDValue Type="System.String">Plugins/FileEnumPlugin</DDValue>
-						</Attribute>
-					  </DDAttributesCollection>
-                    </DDNode>
-                    <DDNode Name="PluginSpecific" Type="PluginConfig">
-                    </DDNode>
-                  </DDNode>
+        <DDNode Name="PluginSpecific" Type="PluginConfig">
+          <DDAttributesCollection>
+            <Attribute Name="FolderPath">
+              <DDValue Type="System.String" Size="10">C:\Folder1</DDValue>
+            </Attribute>
+            <Attribute Name="Include">
+              <DDValue Type="System.String" Size="1">*</DDValue>
+            </Attribute>
+            <Attribute Name="Exclude">
+              <DDValue Type="System.String" Size="1"> </DDValue>
+            </Attribute>
+            <Attribute Name="Recurrent">
+              <DDValue Type="System.String" Size="4">True</DDValue>
+            </Attribute>
+            <Attribute Name="OutputFolder">
+              <DDValue Type="System.String" Size="14">C:\Test\Result</DDValue>
+            </Attribute>
+            <Attribute Name="sadAtrr">
+              <DDValue Type="">asd</DDValue>
+            </Attribute>
+          </DDAttributesCollection>
+        </DDNode>
+      </DDNode>
+    </DDNode>
+    <DDNode Name="Manager_task" Type="Task">
+      <DDNode Name="Configuration" Type="Configuration">
+        <DDNode Name="Common" Type="PluginConfig">
+          <DDAttributesCollection>
+            <Attribute Name="PathToConfig">
+              <DDValue Type="System.String">Plugins/Manager</DDValue>
+            </Attribute>
+          </DDAttributesCollection>
+        </DDNode>
+        <DDNode Name="PluginSpecific" Type="PluginConfig">
+          <DDNode Name="TaskList" Type="TaskList">
+            <DDNode Name="StubPlugin1_task" Type="Task">
+              <DDNode Name="Configuration" Type="Configuration">
+                <DDNode Name="Common" Type="PluginConfig">
+                  <DDAttributesCollection>
+                    <Attribute Name="PathToConfig">
+                      <DDValue Type="System.String">Plugins/FileEnumPlugin</DDValue>
+                    </Attribute>
+                  </DDAttributesCollection>
                 </DDNode>
-                <DDNode Name="StubPlugin2" Type="Plugin">
-                  <DDNode Name="Configuration" Type="Configuration">
-                    <DDNode Name="Common" Type="PluginConfig">
-					  <DDAttributesCollection>
-						<Attribute Name="PathToConfig">
-						  <DDValue Type="System.String">Plugins/FileEnumPlugin</DDValue>
-						</Attribute>
-					  </DDAttributesCollection>
-                    </DDNode>
-                    <DDNode Name="PluginSpecific" Type="PluginConfig">
-                    </DDNode>
-                  </DDNode>
+                <DDNode Name="PluginSpecific" Type="PluginConfig">
+                </DDNode>
+              </DDNode>
+            </DDNode>
+            <DDNode Name="StubPlugin2_task" Type="Task">
+              <DDNode Name="Configuration" Type="Configuration">
+                <DDNode Name="Common" Type="PluginConfig">
+                  <DDAttributesCollection>
+                    <Attribute Name="PathToConfig">
+                      <DDValue Type="System.String">Plugins/FileEnumPlugin</DDValue>
+                    </Attribute>
+                  </DDAttributesCollection>
+                </DDNode>
+                <DDNode Name="PluginSpecific" Type="PluginConfig">
                 </DDNode>
               </DDNode>
             </DDNode>
