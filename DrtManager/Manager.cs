@@ -52,19 +52,18 @@ namespace DrOpen.DrTask.DrtManager
         /// </summary>
         private readonly List<string> supportedCommands;
         /// <summary>
-        /// List of already loaded plugin objects
-        /// </summary>
-        //private List<IPlugin> pluginList;
-        /// <summary>
         /// Collection of loaded plugin objects with specified IDs
         /// </summary>
         private Dictionary<string, IPlugin> taskList;
-        private string currentTask;
-        private string[] taskOrder;
         /// <summary>
-        /// Currently executing plugin. Could be changed by child manager request
+        /// Name (unique string ID) of current task
         /// </summary>
-        //private int currentPlugin;
+        private string currentTask;
+        /// <summary>
+        /// Array of of task names in right execution order (according to given config)
+        /// </summary>
+        private string[] taskOrder;
+
 
 
         public Manager()
@@ -74,10 +73,8 @@ namespace DrOpen.DrTask.DrtManager
                 FCommands.Sample
             };
 
-            //pluginList = new List<IPlugin>();
             taskList = new Dictionary<string, IPlugin>();
             currentTask = null;
-            //currentPlugin = 0;
         }
 
 
@@ -106,10 +103,9 @@ namespace DrOpen.DrTask.DrtManager
                 if (beforeExecuteArgs.ContainsKey(Manager.Cancel))
                     throw new NotImplementedException();
 
-                //currentPlugin = 0;
                 currentTask = null;
                 var result = DoExecute(config, nodes);
-                DoAfterExecute(new DDEventArgs());
+                DoAfterExecute(new DDEventArgs()); // ToDo: what happens here?
                 return result;
             }
             catch (Exception e)
@@ -137,7 +133,8 @@ namespace DrOpen.DrTask.DrtManager
                 DDNode taskConfig = GetTaskConfig(taskListNode, currentTask);
                 currentTaskInstance.Execute(taskConfig);
 
-                setCurrentTask();
+                setCurrentTask();   // ToDo: if-else
+                                    // if somebody has used overloaded verison and has set currentTask to specific task - skip this 
             }
 
             return new DDNode("GoodResult"); // ToDo create stub static positive and negative Execute result and return it
@@ -231,10 +228,11 @@ namespace DrOpen.DrTask.DrtManager
         /// <returns></returns>
         private IPlugin getNextTask(DDNode taskListNode)
         {
+            // If object for task [currentTask] is not created yet:
             if(!taskList.ContainsKey(currentTask))
             {
                 if (!taskListNode.Contains(currentTask))
-                    throw new NotImplementedException(); // TODO: not existant node handling
+                    throw new NotImplementedException(); // ToDo: not existant node handling
                 DDNode pluginNode = taskListNode.GetNode(currentTask);
                 IPlugin newTask = GetPluginObject(pluginNode);
 
@@ -247,30 +245,6 @@ namespace DrOpen.DrTask.DrtManager
             return taskList[currentTask];
         }
         
-        /// <summary>
-        /// Returns config for [currentPlugin] plugin in [pluginsListNode]
-        /// </summary>
-        /// <param name="pluginsListNode">Node with PluginList from xml-config</param>
-        /// <param name="currentPlugin">Plugin for which configuration is requested</param>
-        /// <returns>Node with config for [currentPlugin] plugin</returns>
-        private DDNode GetPluginConfig(DDNode pluginsListNode, int currentPlugin) // ToDo remove this stupid function
-        {
-            try
-            {
-                int i = 0;
-                foreach (var pluginNode in pluginsListNode)
-                {
-                    if (i == currentPlugin)
-                        return pluginNode.Value.GetNode(Manager.Configuration + "/" + Manager.PluginSpecific);
-                    i++;
-                }
-                return null;
-            }
-            catch(Exception e)
-            {
-                throw new ApplicationException(e.Message);
-            }
-        }
 
         /// <summary>
         /// Subscribe CallParentHandler method to CallParent event if it's Manager object boxed into IPlugin
@@ -292,16 +266,18 @@ namespace DrOpen.DrTask.DrtManager
         /// <param name="eventArgs">Event arguments</param>
         public void DoCallParent(DDEventArgs eventArgs)
         {
+            log.WriteTrace("Starting DoCallParent...");
             try
             {
                 if (CallParent != null)
                     CallParent(this, eventArgs);
 
-                Console.WriteLine("\tCall up started.");
+                log.WriteTrace("CallParent started.");
             }
             catch (Exception e)
             {
-                // ToDo - Вщ not ever do this. Where are logging and throw?
+                log.WriteError(e, "CallParent event failed");
+                throw new ApplicationException("CallParent event failed", e);
             }
         }
 
@@ -377,8 +353,6 @@ namespace DrOpen.DrTask.DrtManager
                     resultNode = FCommands.GetCommand(commandName).DoIt(eventArgs.EventData);
                 }
 
-                //if (commandName == FCommands.GoTo && resultNode.GetNode("GoTo").Attributes["Enabled"])
-                //    currentPlugin = resultNode.GetNode("GoTo").Attributes["PluginToGo"];
 
                 //log.WriteDebug("EventHandling started succesfull");
             }
@@ -404,13 +378,14 @@ namespace DrOpen.DrTask.DrtManager
                 object providerObject = GetSpecifiedObject(reflectedDLL.GetTypes(), classType, constructorParamsArray);
 
                 if (providerObject != null) return providerObject;
+                else
+                    throw new ApplicationException("Cannot get object: There are no class|dll|construcotor...");
             }
             catch (Exception e)
             {
-                throw new ApplicationException(e.Message); // ToDo log.WriteError + throw ... look for previous comment about the same issue
+                log.WriteError(e, "GetObject failure");
+                throw new ApplicationException("GetObject failure", e); 
             }
-
-            throw new ApplicationException("There are no class|dll|construcotor..."); // ToDo Why?
         }
 
         /// <summary>
@@ -425,14 +400,16 @@ namespace DrOpen.DrTask.DrtManager
 
                 object providerObject = GetSpecifiedObject(reflectedDLL.GetTypes(), className, constructorParamsArray);
 
-                if (providerObject != null) return providerObject;
+                if (providerObject != null)
+                    return providerObject;
+                else
+                    throw new ApplicationException("Cannot get object: There are no class|dll|construcotor...");
             }
             catch (Exception e)
             {
-                throw new ApplicationException(e.Message);
+                log.WriteError(e, "GetObject failure");
+                throw new ApplicationException("GetObject failure", e);
             }
-
-            throw new ApplicationException("There are no class|dll|construcotor...");
         }
 
         /// <summary>
@@ -514,7 +491,6 @@ namespace DrOpen.DrTask.DrtManager
 
         #endregion
         #region const
-        private const string PluginList = "PluginList";
         private const string TaskList = "TaskList";
         private const string Configuration = "Configuration";
         private const string Common = "Common";
