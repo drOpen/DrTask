@@ -105,6 +105,7 @@ namespace DrOpen.DrTask.DrtManager
 
                 currentTask = null;
                 var result = DoExecute(config, nodes);
+                DoCallParent(new DDEventArgs());
                 DoAfterExecute(new DDEventArgs()); // ToDo: what happens here?
                 return result;
             }
@@ -128,13 +129,14 @@ namespace DrOpen.DrTask.DrtManager
 
             while(currentTask != null)
             {
-                IPlugin currentTaskInstance = getNextTask(taskListNode);
+                IPlugin currentTaskInstance = GetNextTask(taskListNode);
 
                 DDNode taskConfig = GetTaskConfig(taskListNode, currentTask);
                 currentTaskInstance.Execute(taskConfig);
 
                 setCurrentTask();   // ToDo: if-else
                                     // if somebody has used overloaded verison and has set currentTask to specific task - skip this 
+                                    // perhaps use the flag that will be reset in GetNextTask(taskListNode)
             }
 
             return new DDNode("GoodResult"); // ToDo create stub static positive and negative Execute result and return it
@@ -226,13 +228,13 @@ namespace DrOpen.DrTask.DrtManager
         /// </summary>
         /// <param name="taskListNode"></param>
         /// <returns></returns>
-        private IPlugin getNextTask(DDNode taskListNode)
+        private IPlugin GetNextTask(DDNode taskListNode)
         {
             // If object for task [currentTask] is not created yet:
             if(!taskList.ContainsKey(currentTask))
             {
                 if (!taskListNode.Contains(currentTask))
-                    throw new NotImplementedException(); // ToDo: not existant node handling
+                    throw new NotImplementedException(); // Maybe not nessesary
                 DDNode pluginNode = taskListNode.GetNode(currentTask);
                 IPlugin newTask = GetPluginObject(pluginNode);
 
