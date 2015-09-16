@@ -87,5 +87,45 @@ namespace DrOpen.DrTask.DrtPlugin
             }
         }
 
+        #region ResultNodes
+        /// <summary>
+        /// Generates node that indicate successfull execution 
+        /// </summary>
+        /// <param name="info">Optional information node</param>
+        /// <returns></returns>
+        public static DDNode GoodResult(DDNode info = null)
+        {
+            return ExecutionResult(info, true, true);
+        }
+
+        /// <summary>
+        /// Generates node that indicate failed execution
+        /// </summary>
+        /// <param name="info">Optional information node</param>
+        /// <returns></returns>
+        public static DDNode BadResult(DDNode info = null)
+        {
+            return ExecutionResult(info, false, false);
+        }
+
+        /// <summary>
+        /// Generates "ExecutionResult" node with specified attributes
+        /// </summary>
+        /// <param name="info">Optional information node</param>
+        /// <param name="success">Indicates whether there was failed or successfull execution</param>
+        /// <param name="isCompleted">[True] indicates that plugin completed it's job and doesn't need to be executed again</param>
+        /// <returns></returns>
+        public static DDNode ExecutionResult(DDNode info, bool success, bool isCompleted)
+        {
+            var resultNode = new DDNode("ExecutionResult");
+            if (info != null)
+                resultNode.Add(info);
+            resultNode.Attributes.Add("Success", success);
+            resultNode.Attributes.Add("IsCompleted", isCompleted);
+
+            return resultNode;
+        }
+        #endregion
+
     }
 }

@@ -139,7 +139,7 @@ namespace DrOpen.DrTask.DrtManager
                                     // perhaps use the flag that will be reset in GetNextTask(taskListNode)
             }
 
-            return new DDNode("GoodResult"); // ToDo create stub static positive and negative Execute result and return it
+            return Plugin.GoodResult();
         }
 
 
