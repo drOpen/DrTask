@@ -92,7 +92,7 @@ namespace DrOpen.DrTask.DrtPlugin
         /// Generates node that indicate successfull execution 
         /// </summary>
         /// <param name="info">Optional information node</param>
-        /// <returns></returns>
+        /// <returns>Node "ExecutionResult"[Attributes:Success=true,IsConpleted=true] with child node [info]</returns>
         public static DDNode GoodResult(DDNode info = null)
         {
             return ExecutionResult(info, true, true);
@@ -102,7 +102,7 @@ namespace DrOpen.DrTask.DrtPlugin
         /// Generates node that indicate failed execution
         /// </summary>
         /// <param name="info">Optional information node</param>
-        /// <returns></returns>
+        /// <returns>Node "ExecutionResult"[Attributes:Success=false,IsConpleted=false] with child node [info]</returns>
         public static DDNode BadResult(DDNode info = null)
         {
             return ExecutionResult(info, false, false);
@@ -114,7 +114,7 @@ namespace DrOpen.DrTask.DrtPlugin
         /// <param name="info">Optional information node</param>
         /// <param name="success">Indicates whether there was failed or successfull execution</param>
         /// <param name="isCompleted">[True] indicates that plugin completed it's job and doesn't need to be executed again</param>
-        /// <returns></returns>
+        /// <returns>Node "ExecutionResult"[Attributes:Success=[success],IsConpleted=[isCompleted]] with child node [info]</returns>
         public static DDNode ExecutionResult(DDNode info, bool success, bool isCompleted)
         {
             var resultNode = new DDNode("ExecutionResult");
