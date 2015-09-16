@@ -11,7 +11,7 @@ namespace StubPlugin
     {
         public override DDNode Execute(DDNode config, params DDNode[] nodes)
         {
-            return new DDNode("Stub");
+            return Plugin.GoodResult(new DDNode("Stub")); ;
         }
         /*
         DDNode stubEnum;
