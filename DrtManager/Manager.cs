@@ -1,31 +1,31 @@
 ﻿/*
 Manager.cs -- base manager for executing plugins 1.0.0, August 30, 2015
 
-Copyright (c) 2013-2015 Kudryashov Andrey aka Dr
-Kirillov Vasiliy 
-Mattis Igor 
+  Copyright (c) 2013-2015 Kudryashov Andrey aka Dr
+                          Kirillov Vasiliy 
+                          Mattis Igor 
+ 
+  This software is provided 'as-is', without any express or implied
+  warranty. In no event will the authors be held liable for any damages
+  arising from the use of this software.
 
-This software is provided 'as-is', without any express or implied
-warranty. In no event will the authors be held liable for any damages
-arising from the use of this software.
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
 
-Permission is granted to anyone to use this software for any purpose,
-including commercial applications, and to alter it and redistribute it
-freely, subject to the following restrictions:
+      1. The origin of this software must not be misrepresented; you must not
+      claim that you wrote the original software. If you use this software
+      in a product, an acknowledgment in the product documentation would be
+      appreciated but is not required.
 
-1. The origin of this software must not be misrepresented; you must not
-claim that you wrote the original software. If you use this software
-in a product, an acknowledgment in the product documentation would be
-appreciated but is not required.
+      2. Altered source versions must be plainly marked as such, and must not be
+      misrepresented as being the original software.
 
-2. Altered source versions must be plainly marked as such, and must not be
-misrepresented as being the original software.
+      3. This notice may not be removed or altered from any source distribution.
 
-3. This notice may not be removed or altered from any source distribution.
-
-Kudryashov Andrey <kudryashov.andrey at gmail.com>
-Kirillov Vasiliy  <vskirillov.spb at gmail.com>
-Mattis Igor       <rulez1990 at gmail.com>
+      Kudryashov Andrey <kudryashov.andrey at gmail.com>
+      Kirillov Vasiliy  <vskirillov.spb at gmail.com>
+      Mattis Igor       <rulez1990 at gmail.com>
 
 */
 using DrOpen.DrTask.DrtPlugin;
@@ -88,43 +88,58 @@ namespace DrOpen.DrTask.DrtManager
             return supportedCommands.Contains(command);
         }
 
+        private DDEventArgs GetBeforeExecuteEventArgs(DDNode sharedData, params DDNode[] nodes)
+        {
+            return  new DDEventArgs();
+        }
+
         /// <summary>
         /// Facade for execution of manager with given config and data
         /// </summary>
-        /// <param name="config">config should contain a node with list of plugin for proper execution</param>
-        /// <param name="nodes"></param>
+        /// <param name="sharedData">config should contain a node with list of plugin for proper execution</param>
+        /// <param name="nodes">reserved, don't use it</param>
         /// <returns></returns>
-        public override DDNode Execute(DDNode config, params DDNode[] nodes)
+        public override DDNode Execute(DDNode sharedData, params DDNode[] nodes)
         {
             try
             {
-                var beforeExecuteArgs = new DDEventArgs();
+                /*
+                 
+                var beforeExecuteArgs = GetBeforeExecuteEventArgs(sharedData, nodes);//new DDEventArgs(); // ToDo necessary to alter DDEventArgs
                 DoBeforeExecute(beforeExecuteArgs);
                 if (beforeExecuteArgs.ContainsKey(Manager.Cancel))
                     throw new NotImplementedException();
+                
+                */
 
                 currentTask = null;
-                var result = DoExecute(config, nodes);
-                DoCallParent(new DDEventArgs());
-                DoAfterExecute(new DDEventArgs()); // ToDo: what happens here?
+                var result = DoExecute(sharedData, nodes);
+
+                /*
+                
+                DoCallParent(new DDEventArgs()); // ToDo necessary to alter DDEventArgs
+                DoAfterExecute(new DDEventArgs()); // ToDo necessary to alter DDEventArgs
+                
+                */
+
                 return result;
             }
             catch (Exception e)
             {
-                log.WriteError(e, "Execute failure");
-                throw new ApplicationException("Cannot execute Manager", e);
+                log.WriteError(e, "Execute failure.");
+                throw new ApplicationException("Cannot execute Manager.", e);
             }
         }
 
         /// <summary>
         /// Invokes execution of manager with given config and additional data
         /// </summary>
-        /// <param name="config">config should contain a node with list of plugin for proper execution</param>
-        /// <param name="nodes"></param>
+        /// <param name="sharedData">config should contain a node with list of plugin for proper execution</param>
+        /// <param name="nodes">reserved, don't use it</param>
         /// <returns></returns>
-        private DDNode DoExecute(DDNode config, params DDNode[] nodes)
+        private DDNode DoExecute(DDNode sharedData, params DDNode[] nodes)
         {
-            DDNode taskListNode = GetTaskList(config);
+            DDNode taskListNode = GetTaskList(sharedData);
             BuildTaskOrder(taskListNode);
 
             while(currentTask != null)
@@ -204,7 +219,7 @@ namespace DrOpen.DrTask.DrtManager
         /// <param name="taskName">Name (unique at the level ID) of task</param>
         private void setCurrentTask(string taskName)
         {
-            if (Array.IndexOf(taskOrder, taskName) != -1)
+            if (Array.IndexOf(taskOrder, taskName) != -1) // ToDo need to switch hash collection
                 currentTask = taskName;
             else
                 currentTask = null; // TODO: to be discussed
