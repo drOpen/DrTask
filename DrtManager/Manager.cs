@@ -88,11 +88,42 @@ namespace DrOpen.DrTask.DrtManager
             return supportedCommands.Contains(command);
         }
 
-        private DDEventArgs GetBeforeExecuteEventArgs(DDNode sharedData, params DDNode[] nodes)
+        #region DDEventArgs wrapper
+        /// <summary>
+        /// returns DDEventArgs with SharedData and EventConfig
+        /// </summary>
+        /// <param name="sharedData"></param>
+        /// <param name="nodes">reserved, don't use it</param>
+        /// <returns>retruns DDEventArgs with SharedData and EventConfig</returns>
+        private DDEventArgs getBeforeExecuteEventArgs(DDNode sharedData, params DDNode[] nodes)
         {
-            return  new DDEventArgs();
+            var eConfig = new DDNode(EventConfig, new DDType(EventConfig)); // create 'EventConfig' node
+            eConfig.Attributes.Add(EventPropCancel, new DDValue(false)); // add Cancel property
+               
+            return new DDEventArgs(new KeyValuePair<string, DDNode>(EventSharedData, sharedData), 
+                                   new KeyValuePair<string, DDNode>(EventConfig, eConfig));
         }
 
+        /// <summary>
+        /// returns value for property 'Cancel' for specified event
+        /// </summary>
+        /// <param name="ev">event argument</param>
+        /// <returns>returns value for property 'Cancel' for specified event</returns>
+        private bool isEventCancelled (DDEventArgs  ev)
+        {
+            try
+            {
+                return ev[EventConfig].Attributes.GetValue(EventPropCancel, false);
+            }
+            catch (Exception e)
+            {
+                log.WriteError("Cannot get 'Cancel' value from event configuration.", e);
+                return false;
+            }
+        }
+
+
+        #endregion DDEventArgs wrapper
         /// <summary>
         /// Facade for execution of manager with given config and data
         /// </summary>
@@ -103,21 +134,21 @@ namespace DrOpen.DrTask.DrtManager
         {
             try
             {
-                /*
-                 
-                var beforeExecuteArgs = GetBeforeExecuteEventArgs(sharedData, nodes);//new DDEventArgs(); // ToDo necessary to alter DDEventArgs
+
+                var beforeExecuteArgs = getBeforeExecuteEventArgs(sharedData, nodes);//new DDEventArgs(); // ToDo necessary to alter DDEventArgs
                 DoBeforeExecute(beforeExecuteArgs);
-                if (beforeExecuteArgs.ContainsKey(Manager.Cancel))
-                    throw new NotImplementedException();
-                
-                */
+                if (isEventCancelled(beforeExecuteArgs))
+                {
+                    log.WriteWarning("Execution is cancelled by subscriber.");
+                    return Plugin.ResultCancelled();
+                }
+
 
                 currentTask = null;
                 var result = DoExecute(sharedData, nodes);
 
                 /*
-                
-                DoCallParent(new DDEventArgs()); // ToDo necessary to alter DDEventArgs
+                                DoCallParent(new DDEventArgs()); // ToDo necessary to alter DDEventArgs
                 DoAfterExecute(new DDEventArgs()); // ToDo necessary to alter DDEventArgs
                 
                 */
@@ -154,7 +185,7 @@ namespace DrOpen.DrTask.DrtManager
                                     // perhaps use the flag that will be reset in GetNextTask(taskListNode)
             }
 
-            return Plugin.GoodResult();
+            return Plugin.ResultGood();
         }
 
 
@@ -515,7 +546,9 @@ namespace DrOpen.DrTask.DrtManager
         private const string ClassName = "ClassName";
         private const string PathToConfig = "PathToConfig";
         private const string PluginSpecific = "PluginSpecific";
-        public const string Cancel = "Cancel";
+        public const string EventPropCancel = "Cancel";
+        public const string EventConfig = "EventConfig";
+        public const string EventSharedData = "EventSharedData";
         #endregion
     }
 }

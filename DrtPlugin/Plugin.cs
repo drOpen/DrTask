@@ -93,7 +93,7 @@ namespace DrOpen.DrTask.DrtPlugin
         /// </summary>
         /// <param name="info">Optional information node</param>
         /// <returns>Node "ExecutionResult"[Attributes:Success=true,IsConpleted=true] with child node [info]</returns>
-        public static DDNode GoodResult(DDNode info = null)
+        public static DDNode ResultGood(DDNode info = null)
         {
             return ExecutionResult(info, true, true);
         }
@@ -103,9 +103,19 @@ namespace DrOpen.DrTask.DrtPlugin
         /// </summary>
         /// <param name="info">Optional information node</param>
         /// <returns>Node "ExecutionResult"[Attributes:Success=false,IsConpleted=false] with child node [info]</returns>
-        public static DDNode BadResult(DDNode info = null)
+        public static DDNode ResultBad(DDNode info = null)
         {
             return ExecutionResult(info, false, false);
+        }
+
+        /// <summary>
+        /// Generates node that indicate cancelled execution
+        /// </summary>
+        /// <param name="info">Optional information node</param>
+        /// <returns>Node "ExecutionResult"[Attributes:Success=true,IsConpleted=false] with child node [info]</returns>
+        public static DDNode ResultCancelled(DDNode info = null)
+        {
+            return ExecutionResult(info, true, false);
         }
 
         /// <summary>
