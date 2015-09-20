@@ -95,7 +95,7 @@ namespace DrOpen.DrTask.DrtPlugin
         /// <returns>Node "ExecutionResult"[Attributes:Success=true,IsConpleted=true] with child node [info]</returns>
         public static DDNode ResultGood(DDNode info = null)
         {
-            return ExecutionResult(info, true, true);
+            return BuildExecutionResult(info, true, true);
         }
 
         /// <summary>
@@ -105,7 +105,7 @@ namespace DrOpen.DrTask.DrtPlugin
         /// <returns>Node "ExecutionResult"[Attributes:Success=false,IsConpleted=false] with child node [info]</returns>
         public static DDNode ResultBad(DDNode info = null)
         {
-            return ExecutionResult(info, false, false);
+            return BuildExecutionResult(info, false, false);
         }
 
         /// <summary>
@@ -115,7 +115,7 @@ namespace DrOpen.DrTask.DrtPlugin
         /// <returns>Node "ExecutionResult"[Attributes:Success=true,IsConpleted=false] with child node [info]</returns>
         public static DDNode ResultCancelled(DDNode info = null)
         {
-            return ExecutionResult(info, true, false);
+            return BuildExecutionResult(info, true, false);
         }
 
         /// <summary>
@@ -125,17 +125,21 @@ namespace DrOpen.DrTask.DrtPlugin
         /// <param name="success">Indicates whether there was failed or successfull execution</param>
         /// <param name="isCompleted">[True] indicates that plugin completed it's job and doesn't need to be executed again</param>
         /// <returns>Node "ExecutionResult"[Attributes:Success=[success],IsConpleted=[isCompleted]] with child node [info]</returns>
-        public static DDNode ExecutionResult(DDNode info, bool success, bool isCompleted)
+        public static DDNode BuildExecutionResult(DDNode info, bool success, bool isCompleted)
         {
-            var resultNode = new DDNode("ExecutionResult");
+            var resultNode = new DDNode(ExecutionResult);
             if (info != null)
                 resultNode.Add(info);
-            resultNode.Attributes.Add("Success", success);
-            resultNode.Attributes.Add("IsCompleted", isCompleted);
+            resultNode.Attributes.Add(ExecutionSuccess, success);
+            resultNode.Attributes.Add(ExecutionIsCompleted, isCompleted);
 
             return resultNode;
         }
         #endregion
-
+        #region const
+        public const string ExecutionResult = "ExecutionResult";
+        public const string ExecutionSuccess = "Success";
+        public const string ExecutionIsCompleted = "IsCompleted";
+        #endregion
     }
 }
