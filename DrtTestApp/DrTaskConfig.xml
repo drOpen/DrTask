@@ -80,9 +80,6 @@
             <Attribute Name="OutputFolder">
               <DDValue Type="System.String" Size="14">C:\Test\Result</DDValue>
             </Attribute>
-            <Attribute Name="sadAtrr">
-              <DDValue Type="">asd</DDValue>
-            </Attribute>
           </DDAttributesCollection>
         </DDNode>
       </DDNode>
